@@ -1,0 +1,24 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+node=$1
+if [ -z $node ]; then
+  echo "$(basename $0) nodename"
+  exit 1
+fi
+
+action=$2
+[ -z "${action}" ] && action=status
+
+bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+export bmc_ip
+
+case ${action} in
+  auto) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x73 0 ;;
+  max) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x74 100 ;;
+  *) echo "${bmc_ip}: $(ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sdr|grep RPM|awk '{print $3}'|paste -s -d ' ')"
+esac

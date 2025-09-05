@@ -1,0 +1,38 @@
+FROM ubuntu:22.04
+MAINTAINER JunLi Zhang<junliz@nvidia.com>
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN \
+  apt update && \
+  apt install -y --no-install-recommends \
+    software-properties-common curl sudo \
+    net-tools zenity xz-utils gpg-agent \
+    dbus-x11 x11-utils alsa-utils \
+    mesa-utils libgl1-mesa-dri \
+    xvfb x11vnc vim-tiny firefox \
+    ttf-wqy-zenhei xfonts-wqy \
+    lxde gtk2-engines-murrine gnome-themes-standard \
+    gtk2-engines-pixbuf gtk2-engines-murrine arc-theme \
+    novnc tightvncserver websockify \
+    net-tools wget curl openssh-client git \
+    python3-numpy \
+    xserver-xorg-core xfonts-base && \
+  apt autoclean -y && \
+  apt autoremove -y && \
+  rm -rf /var/lib/apt/lists/* && \
+  ln -s /usr/share/novnc/vnc_lite.html /usr/share/novnc/index.html
+
+RUN \
+  apt update && \
+  apt install -y chromium-browser && \
+  apt autoclean -y && \
+  rm -rf /var/lib/apt/lists/*
+
+#For "No session for pid xxxx" problem when connect to VNC
+#Ref: https://github.com/meefik/linuxdeploy/issues/978
+RUN \
+  mv /usr/bin/lxpolkit /usr/bin/lxpolkit.ori
+USER root
+ADD start.sh /start.sh
+CMD ["/bin/bash", "/start.sh"]

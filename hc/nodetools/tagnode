@@ -1,0 +1,5 @@
+#!/bin/bash
+
+
+scontrol update nodename="$1" state=drain reason="$2"
+sinfo -Rl|grep SFDC
