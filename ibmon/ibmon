@@ -1,0 +1,2 @@
+#!/bin/bash
+PYTHONPATH=/home/cmsupport/workspace/dool/usr/local/lib/python3.12/dist-packages:$PYTHONPATH /home/cmsupport/workspace/dool/dool --cpu --mem --top-cpu --top-mem --ib -N $(ls -1 /sys/class/infiniband|sort -n -k2 -t '_'|xargs -I{} echo {}:1|paste -s -d',') --nvidia-gpu -f --nvidia-gpu-mem -f
