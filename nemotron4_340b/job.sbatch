@@ -8,17 +8,14 @@
 #SBATCH --ntasks-per-node=4
 #SBATCH --open-mode=append
 #SBATCH --partition=defq
-#SBATCH --time=00:33:00
+#SBATCH --time=00:13:00
 #SBATCH --gpus-per-node=4
-#SBATCH --reservation=junli_val
+##SBATCH --reservation=junli_val
 
 set -x
 
-#CONT=/home/cmsupport/workspace/nemo/nemo-25.04.rc2.sqsh
-#CONT=/raid/data/nemo-25.04.rc2.sqsh
-#CONT=/raid/data/nemo-25.04.rc2.m1.sqsh 
-CONT=/raid/data/nemo-25.04.rc2.m2.sqsh 
-#CONT=/raid/data/nemo-25.07.sqsh 
+CONT=/home/cmsupport/workspace/nemo-25.04.rc2.m2.sqsh
+#CONT=/raid/data/nemo-25.04.rc2.m2.sqsh 
 
 case ${SLURM_NNODES} in
   16)                single_rack=1 ;;

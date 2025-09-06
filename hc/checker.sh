@@ -109,7 +109,7 @@ if [ $(lspci | grep 'Infiniband controller'|wc -l) -ne 4 ]; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 4 ]; then
+if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 2 ]; then
   msg='WARN: BlueField-3 ethernet ports number is not 4'
   echo $msg
   #reason="${reason} ${msg}"
