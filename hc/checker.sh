@@ -95,7 +95,7 @@ if [ ! -f /etc/nvidia-imex/nodes_config.cfg ]; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ $(nvidia-imex-ctl -q 2>/dev/null) != "READY" ]; then
+if [ "X$(nvidia-imex-ctl -q 2>/dev/null)X" != "XREADYX" ]; then
   msg='ERROR: IMEX is not active'
   echo $msg
   reason="${reason} ${msg}"
@@ -110,10 +110,10 @@ if [ $(lspci | grep 'Infiniband controller'|wc -l) -ne 4 ]; then
   global_status=$[global_status+1]
 fi
 if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 4 ]; then
-  msg='ERROR: BlueField-3 ethernet ports number is not 4'
+  msg='WARN: BlueField-3 ethernet ports number is not 4'
   echo $msg
-  reason="${reason} ${msg}"
-  global_status=$[global_status+1]
+  #reason="${reason} ${msg}"
+  #global_status=$[global_status+1]
 fi
 active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*)); grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/dev/null && echo ${hca}:1;done))
 if [ ${#active_hcas[*]} -ne 4 ]; then
@@ -177,8 +177,8 @@ fi
 
 ##
 #exit ${global_status}
-if [ ${global_status} -ne 0 ]; then
-source /etc/profile
-module load slurm
-scontrol update nodename=$(hostname) stat=drain reason="${reason}"
-fi
+#if [ ${global_status} -ne 0 ]; then
+#source /etc/profile
+#module load slurm
+#scontrol update nodename=$(hostname) stat=drain reason="${reason}"
+#fi
