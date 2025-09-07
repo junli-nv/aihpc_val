@@ -68,6 +68,12 @@ if `nvidia-smi -L` &>/dev/null; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
+if [ $(nvidia-smi -L|wc -l) -ne 4 ]; then
+  msg="ERROR: Not all 4 GPUs detected by nvidia-smi"
+  echo $msg
+  reason="${reason} ${msg}"
+  global_status=$[global_status+1]
+fi
 if [ $(nvidia-smi nvlink -s|grep '5[0-9].* GB/s'|wc -l) -ne 72 ]; then
   msg='ERROR: 72 GPU NVLINKs are not fully connected'
   echo $msg
