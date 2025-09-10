@@ -183,8 +183,13 @@ fi
 
 ##
 #exit ${global_status}
-#if [ ${global_status} -ne 0 ]; then
-#source /etc/profile
-#module load slurm
-#scontrol update nodename=$(hostname) stat=drain reason="${reason}"
-#fi
+if [ ${global_status} -ne 0 ]; then
+source /etc/profile
+module load slurm
+scontrol update nodename=$(hostname) stat=drain reason="${reason}"
+else
+source /etc/profile
+module load slurm
+scontrol update nodename=$(hostname) stat=undrain
+fi
+
