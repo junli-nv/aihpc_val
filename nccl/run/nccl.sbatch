@@ -30,6 +30,10 @@ fi
 set -x
 ldd `which all_reduce_perf`
 
+eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
+export UCX_NET_DEVICES=${eth_nic}
+export NCCL_SOCKET_IFNAME=${eth_nic}
+
 #ulimit -s 8192 -> workaround segment fault start with 2.27.x 
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
