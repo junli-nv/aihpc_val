@@ -12,6 +12,32 @@ set_cpu_freq_userspace(){
 global_status=0
 reason=""
 
+options=d:,h
+optionl=dry-run:,help
+OPTS=$(getopt -a -n $0 --options $options --longoptions $optionl -- "$@")
+eval set -- "$OPTS"
+while :
+do
+  case "$1" in
+    -d | --dry-run )
+      dry_run="$2"
+      shift 2
+      ;;
+    -h | --help)
+      help
+      exit 0
+      ;;
+    --)
+      shift;
+      break
+      ;;
+    *)
+      help
+      exit 0
+      ;;
+  esac
+done
+
 ## CPU
 if [ $(grep processor /proc/cpuinfo|wc -l) -ne 144 ]; then
   msg='ERROR: CPU CORES is not 144'
@@ -68,12 +94,6 @@ if `nvidia-smi -L` &>/dev/null; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ $(nvidia-smi -L|wc -l) -ne 4 ]; then
-  msg="ERROR: Not all 4 GPUs detected by nvidia-smi"
-  echo $msg
-  reason="${reason} ${msg}"
-  global_status=$[global_status+1]
-fi
 if [ $(nvidia-smi nvlink -s|grep '5[0-9].* GB/s'|wc -l) -ne 72 ]; then
   msg='ERROR: 72 GPU NVLINKs are not fully connected'
   echo $msg
@@ -101,7 +121,7 @@ if [ ! -f /etc/nvidia-imex/nodes_config.cfg ]; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ "X$(nvidia-imex-ctl -q 2>/dev/null)X" != "XREADYX" ]; then
+if [ $(nvidia-imex-ctl -q 2>/dev/null) != "READY" ]; then
   msg='ERROR: IMEX is not active'
   echo $msg
   reason="${reason} ${msg}"
@@ -115,11 +135,11 @@ if [ $(lspci | grep 'Infiniband controller'|wc -l) -ne 4 ]; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 2 ]; then
-  msg='WARN: BlueField-3 ethernet ports number is not 4'
+if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 4 ]; then
+  msg='ERROR: BlueField-3 ethernet ports number is not 4'
   echo $msg
-  #reason="${reason} ${msg}"
-  #global_status=$[global_status+1]
+  reason="${reason} ${msg}"
+  global_status=$[global_status+1]
 fi
 active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*)); grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/dev/null && echo ${hca}:1;done))
 if [ ${#active_hcas[*]} -ne 4 ]; then
@@ -174,6 +194,13 @@ if [ -x /home/cmsupport/workspace/cudatest/foo ]; then
   fi
 fi
 
+## Dmesg check
+#AER
+if [ $(dmesg | tail -n 10 | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
+    msg='WARN: pcieport AER met'
+    echo $msg
+fi
+
 ## Print health check status
 if [ ${global_status} -ne 0 ]; then
   echo 'INFO: Health check FAILED'
@@ -183,13 +210,14 @@ fi
 
 ##
 #exit ${global_status}
-if [ ${global_status} -ne 0 ]; then
-source /etc/profile
-module load slurm
-scontrol update nodename=$(hostname) stat=drain reason="${reason}"
-else
-source /etc/profile
-module load slurm
-scontrol update nodename=$(hostname) stat=undrain
+if [[ -z ${dry_run} && ${dry_run} -ne 1 ]]; then
+  if [ ${global_status} -ne 0 ]; then
+    source /etc/profile
+    module load slurm
+    scontrol update nodename=$(hostname) stat=drain reason="${reason}"
+  else
+    source /etc/profile
+    module load slurm
+    scontrol update nodename=$(hostname) stat=undrain
+  fi
 fi
-

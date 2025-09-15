@@ -11,9 +11,10 @@ topdir=/home/cmsupport/workspace
 
 source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
 hpcx_load
-source /etc/profile
-module load shared
-module load cuda12.8/toolkit/12.8.1
+#source /etc/profile
+#module load shared
+#module load cuda12.8/toolkit/12.8.1
+source /home/cmsupport/workspace/cuda/env.sh
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
@@ -25,6 +26,21 @@ if [ ${#hosts[*]} -gt 1 ]; then
 else
   export NCCL_MNNVL_ENABLE=0
 fi
+
+echo "INFO: Doing clean work"
+pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- '_E_'|dshbak -c
+enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
+enroot list -f|grep pyxis||true
+pkill -9 xhpl &>/dev/null || true
+ps -ef|grep xhpl|grep -v -E 'torch|nemo'|grep -v grep || true
+sync;sync;sync
+echo 3 > /proc/sys/vm/drop_caches
+echo 1 > /proc/sys/vm/compact_memory
+_E_
+echo "INFO: Clean work done"
+
+#eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
+eth_nic=enP6p3s0f0np0
 
 set -x
 ldd hpl-linux-aarch64-gpu/xhpl
@@ -55,10 +71,10 @@ mpirun --allow-run-as-root \
   -x NCCL_IB_DISABLE=1 \
   -x UCX_TLS=tcp \
 \
-  -x NCCL_SOCKET_IFNAME=$(/usr/sbin/ip r sh|grep default|awk '{print $5}') \
-  -x UCX_NET_DEVICES=$(/usr/sbin/ip r sh|grep default|awk '{print $5}') \
-  --mca btl_tcp_if_include $(/usr/sbin/ip r sh|grep default|awk '{print $5}') \
-  --mca oob_tcp_if_include $(/usr/sbin/ip r sh|grep default|awk '{print $5}') \
+  -x NCCL_SOCKET_IFNAME=${eth_nic} \
+  -x UCX_NET_DEVICES=${eth_nic} \
+  --mca btl_tcp_if_include ${eth_nic} \
+  --mca oob_tcp_if_include ${eth_nic} \
 \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \

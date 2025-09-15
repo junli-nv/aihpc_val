@@ -7,8 +7,8 @@
 #SBATCH -N 1
 
 cd ${SLURM_SUBMIT_DIR}
-source ../../envs/global_env.sh 
-timeout 60 bash ../../tools/hc/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
+source /home/cmsupport/workspace/aihpc_val/envs/global_env.sh
+timeout 60 bash /home/cmsupport/workspace/aihpc_val/tools/hc/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 

@@ -5,14 +5,18 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
+timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
+
 topdir=/home/cmsupport/workspace
 
 source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
 hpcx_load
-source /etc/profile
-module load shared
-module load cuda12.8/toolkit/12.8.1
+#source /etc/profile
+#module load shared
+#module load cuda12.8/toolkit/12.8.1
+source /home/cmsupport/workspace/cuda/env.sh
 
+echo "NODELIST=${SLURM_JOB_NODELIST}"
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
 cd ${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
@@ -24,38 +28,32 @@ else
   export NCCL_MNNVL_ENABLE=0
 fi
 
-if [ ${#hosts[*]} -gt 128 ]; then
-  HPL_USE_NVSHMEM=0
-else
-  HPL_USE_NVSHMEM=1
-fi
-eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
-
 echo "INFO: Doing clean work"
 pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- '_E_'|dshbak -c
 enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
 enroot list -f|grep pyxis||true
-pkill -9 xhpl &>/dev/null || true
 ps -ef|grep xhpl|grep -v -E 'torch|nemo'|grep -v grep || true
+pkill -9 nccl || true
 sync;sync;sync
 echo 3 > /proc/sys/vm/drop_caches
 echo 1 > /proc/sys/vm/compact_memory
+sysctl -w kernel.numa_balancing=0
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+ipmitool raw 0x3c 0x74 100 &>/dev/null || true
 _E_
 echo "INFO: Clean work done"
 
-timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
+#eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
+eth_nic=enP6p3s0f0np0
 
-timelimit=$[(SLURM_JOB_END_TIME-SLURM_JOB_START_TIME-150)]
-
-s_time=$(date +%s)
 set -x
 ldd hpl-linux-aarch64-gpu/xhpl
 # NCCL_DEBUG_SUBSYS=ALL \
-/usr/bin/timeout ${timelimit} \
+  #--display-map --display-topo --report-bindings \
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
   --map-by ppr:2:socket:PE=36 \
-  --display-map --display-topo --report-bindings \
   -x PATH=$PATH \
   -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
 \
@@ -69,13 +67,12 @@ mpirun --allow-run-as-root \
   -x HPL_DOUBLE_PRECISION_EMULATION_MANTISSA_BIT_COUNT=53 \
   -x MONITOR_GPU=1 \
 \
-  -x HPL_USE_NVSHMEM=${HPL_USE_NVSHMEM} \
+  -x HPL_USE_NVSHMEM=0 \
   -x NVSHMEM_DISABLE_NVLS=1 \
   -x NVSHMEM_HCA_LIST="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
   -x NVSHMEM_ENABLE_NIC_PE_MAPPING=1 \
-  -x NVSHMEM_DEBUG=INFO \
 \
-  -x NCCL_NVLS_ENABLE=1 \
+  -x NCCL_NVLS_ENABLE=0 \
   -x NCCL_DEBUG=INFO \
   -x NCCL_P2P_LEVEL=NVL \
   -x NCCL_CUMEM_ENABLE=1 \
@@ -83,8 +80,6 @@ mpirun --allow-run-as-root \
   -x NCCL_MNNVL_ENABLE=${NCCL_MNNVL_ENABLE} \
   -x NCCL_MIN_CTAS=16 \
   -x NCCL_NET_GDR_LEVEL=SYS \
-\
-  -x NCCL_IB_TIMEOUT=30 \
 \
   -x SLURM_CPU_BIND=none \
   -x OMPI_MCA_pml=ucx \
@@ -112,10 +107,3 @@ mpirun --allow-run-as-root \
     --mem-affinity 0:0:1:1 \
     --dat ${topdir}/hpl/hpldat/HPL-GB200-${#hosts[*]}N.dat
 set +x
-e_time=$(date +%s)
-echo "INFO: timelimit=${timelimit}(s), real_took=$[e_time-s_time](s)"
-
-pdsh -R ssh -w $SLURM_JOB_NODELIST <<- _E_ |dshbak -c
-timeout 5 pkill -9 xhpl 2>&1 || true
-timeout 55 bash /home/cmsupport/workspace/hc/checker.sh
-_E_
