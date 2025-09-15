@@ -6,20 +6,10 @@
 #SBATCH --gpus-per-node=4
 #SBATCH -N 1
 
-#timeout 100 bash /home/cmsupport/workspace/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
-module load slurm
-
 cd ${SLURM_SUBMIT_DIR}
 
-topdir=/home/cmsupport/workspace
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-source /etc/profile
-module load shared
-module load cuda12.8/toolkit/12.8.1
-export LD_LIBRARY_PATH=${topdir}/nccl/bins:$LD_LIBRARY_PATH
-export PATH=${topdir}/nccl/bins:$PATH
-cd ${topdir}/nccl
+#timeout 100 bash /home/cmsupport/workspace/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
+
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
@@ -52,5 +42,5 @@ mpirun --allow-run-as-root \
   -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
-  bash -c "ulimit -s 8192; ${topdir}/nccl/bins/all_reduce_perf -b 16G -f 2 -g 1 -e 16G --iters 100"
+  ${topdir}/nccl/bins/all_reduce_perf -b 16G -f 2 -g 1 -e 16G --iters 100
 set +x
