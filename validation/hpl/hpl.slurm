@@ -28,6 +28,12 @@ else
   export NCCL_MNNVL_ENABLE=0
 fi
 
+if [ ${#hosts[*]} -ge 128 ]; then
+  export HPL_USE_NVSHMEM=0
+else
+  export HPL_USE_NVSHMEM=1
+fi
+
 echo "INFO: Doing clean work"
 pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- '_E_'|dshbak -c
 enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
@@ -67,7 +73,7 @@ mpirun --allow-run-as-root \
   -x HPL_DOUBLE_PRECISION_EMULATION_MANTISSA_BIT_COUNT=53 \
   -x MONITOR_GPU=1 \
 \
-  -x HPL_USE_NVSHMEM=0 \
+  -x HPL_USE_NVSHMEM=${HPL_USE_NVSHMEM} \
   -x NVSHMEM_DISABLE_NVLS=1 \
   -x NVSHMEM_HCA_LIST="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
   -x NVSHMEM_ENABLE_NIC_PE_MAPPING=1 \

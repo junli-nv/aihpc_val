@@ -210,14 +210,14 @@ fi
 
 ##
 #exit ${global_status}
-if [[ -z ${dry_run} && ${dry_run} -ne 1 ]]; then
+source /etc/profile
+module load slurm
+if [[ -z ${dry_run} || ${dry_run} -ne 1 ]]; then
   if [ ${global_status} -ne 0 ]; then
-    source /etc/profile
-    module load slurm
     scontrol update nodename=$(hostname) stat=drain reason="${reason}"
   else
-    source /etc/profile
-    module load slurm
-    scontrol update nodename=$(hostname) stat=undrain
+    if `scontrol show node $(hostname)|grep State=|grep -i DRAIN &>/dev/null`; then
+      scontrol update nodename=$(hostname) stat=undrain
+    fi
   fi
 fi
