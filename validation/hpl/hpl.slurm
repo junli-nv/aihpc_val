@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
+#timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
 
 topdir=/home/cmsupport/workspace
 
@@ -22,36 +22,44 @@ hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 cd ${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
 source hpc-benchmarks-gpu-env.sh
 
-if [ ${#hosts[*]} -gt 1 ]; then
-  export NCCL_MNNVL_ENABLE=1
-else
-  export NCCL_MNNVL_ENABLE=0
-fi
+#if [ ${#hosts[*]} -gt 1 ]; then
+#  export NCCL_MNNVL_ENABLE=1
+#else
+#  export NCCL_MNNVL_ENABLE=0
+#fi
+## Workaround for PDB - NVLINK potential issue cause the HPL stall after nodes>=256
+export NCCL_MNNVL_ENABLE=0
 
-if [ ${#hosts[*]} -ge 128 ]; then
+#if [ ${#hosts[*]} -ge 128 ]; then
+if [ ${#hosts[*]} -ge 512 ]; then
   export HPL_USE_NVSHMEM=0
 else
   export HPL_USE_NVSHMEM=1
+  export HPL_P2P_AS_BCAST=4 #(0->ncclBcast, 1->ncclSend / Recv, 2->CUDA - aware MPI, 3->host MPI, 4->NVSHMEM)
 fi
+
+export HPL_OOC_MODE=0
+export HPL_EMULATE_DOUBLE_PRECISION=1
+export NCCL_IB_TIMEOUT=25
+export NCCL_IB_RETRY_CNT=10
+#export NCCL_PATH=/home/cmsupport/workspace/nccl/bins
+#export LD_LIBRARY_PATH=$NCCL_PATH:$LD_LIBRARY_PATH
 
 echo "INFO: Doing clean work"
 pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- '_E_'|dshbak -c
-enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
-enroot list -f|grep pyxis||true
-ps -ef|grep xhpl|grep -v -E 'torch|nemo'|grep -v grep || true
-pkill -9 nccl || true
-sync;sync;sync
+pkill -9 xhpl || true
 echo 3 > /proc/sys/vm/drop_caches
-echo 1 > /proc/sys/vm/compact_memory
-sysctl -w kernel.numa_balancing=0
-echo never > /sys/kernel/mm/transparent_hugepage/defrag
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
-ipmitool raw 0x3c 0x74 100 &>/dev/null || true
 _E_
 echo "INFO: Clean work done"
 
 #eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
 eth_nic=enP6p3s0f0np0
+#eth_nic=ibp3s0
+
+#\
+#  -x NCCL_IB_QPS_PER_CONNECTION=2 \
+#  -x NCCL_IB_SPLIT_DATA_ON_QPS=0 \
+#  -x UCX_TLS=rc_x,cuda \
 
 set -x
 ldd hpl-linux-aarch64-gpu/xhpl
@@ -68,8 +76,8 @@ mpirun --allow-run-as-root \
 \
   -x HPL_TEST_SYSTEM=0 \
   -x HPL_CUSOLVER_MP_TESTS=0 \
-  -x HPL_OOC_MODE=1 \
-  -x HPL_EMULATE_DOUBLE_PRECISION=1 \
+  -x HPL_OOC_MODE=${HPL_OOC_MODE} \
+  -x HPL_EMULATE_DOUBLE_PRECISION=${HPL_EMULATE_DOUBLE_PRECISION} \
   -x HPL_DOUBLE_PRECISION_EMULATION_MANTISSA_BIT_COUNT=53 \
   -x MONITOR_GPU=1 \
 \
@@ -80,7 +88,7 @@ mpirun --allow-run-as-root \
 \
   -x NCCL_NVLS_ENABLE=0 \
   -x NCCL_DEBUG=INFO \
-  -x NCCL_P2P_LEVEL=NVL \
+  -x NCCL_P2P_LEVEL=C2C \
   -x NCCL_CUMEM_ENABLE=1 \
   -x NCCL_CUMEM_HOST_ENABLE=0 \
   -x NCCL_MNNVL_ENABLE=${NCCL_MNNVL_ENABLE} \
@@ -90,16 +98,13 @@ mpirun --allow-run-as-root \
   -x SLURM_CPU_BIND=none \
   -x OMPI_MCA_pml=ucx \
   -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
-  -x UCX_TLS=rc_x,cuda \
+  -x UCX_TLS=rc \
   -x OMPI_MCA_btl=^openib,smcuda \
   -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5" \
 \
   -x NCCL_SOCKET_IFNAME=${eth_nic} \
   --mca btl_tcp_if_include ${eth_nic} \
   --mca oob_tcp_if_include ${eth_nic} \
-\
-  -x NCCL_IB_QPS_PER_CONNECTION=2 \
-  -x NCCL_IB_SPLIT_DATA_ON_QPS=0 \
 \
   -x NVSHMEM_DISABLE_GDRCOPY=1 \
   -x CUDA_MODULE_LOADING=EAGER \

@@ -64,7 +64,11 @@ find ${logdir} -maxdepth 1 -name '*Rack*.txt' | while read i; do
     printf "%10s%10s%10s%10s%10s%10s%20s%20s %-160s\n" ${ret[0]} ${ret[1]} ${ret[2]} ${ret[3]} ${ret[4]} ${ret[5]} ${ret[6]} ${ret[7]} ${i##*/}
   else
     ret=($(awk '/The following parameter values will be used:/,/The matrix A is randomly generated for each test/{print $0}' $i|grep -E '^(N |NB |P |Q ).*:'|awk '{print $NF}'))
-    printf "%10s%10s%10s%10s%10s%10s%20s%20s %-160s\n" $[${ret[2]}*${ret[3]}/4] ${ret[0]} ${ret[1]} ${ret[2]} ${ret[3]} NA FAILED NA ${i##*/}
+    if [ ${#ret[*]} -gt 0 ]; then
+      printf "%10s%10s%10s%10s%10s%10s%20s%20s %-160s\n" $[${ret[2]}*${ret[3]}/4] ${ret[0]} ${ret[1]} ${ret[2]} ${ret[3]} NA FAILED NA ${i##*/}
+    else
+      printf "%10s%10s%10s%10s%10s%10s%20s%20s %-160s\n" NA NA NA NA NA  NA FAILED NA ${i##*/}
+    fi
   fi
 done | sort -n
 }

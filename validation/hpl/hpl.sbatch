@@ -27,15 +27,13 @@ else
   export NCCL_MNNVL_ENABLE=0
 fi
 
+export HPL_OOC_MODE=0
+export HPL_EMULATE_DOUBLE_PRECISION=1
+
 echo "INFO: Doing clean work"
 pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- '_E_'|dshbak -c
-enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
-enroot list -f|grep pyxis||true
 pkill -9 xhpl &>/dev/null || true
-ps -ef|grep xhpl|grep -v -E 'torch|nemo'|grep -v grep || true
-sync;sync;sync
 echo 3 > /proc/sys/vm/drop_caches
-echo 1 > /proc/sys/vm/compact_memory
 _E_
 echo "INFO: Clean work done"
 
@@ -56,8 +54,8 @@ mpirun --allow-run-as-root \
   -x HPL_USE_NVSHMEM=1 \
   -x NVSHMEM_DISABLE_NVLS=1 \
 \
-  -x HPL_OOC_MODE=1 \
-  -x HPL_EMULATE_DOUBLE_PRECISION=1 \
+  -x HPL_OOC_MODE=${HPL_OOC_MODE} \
+  -x HPL_EMULATE_DOUBLE_PRECISION=${HPL_EMULATE_DOUBLE_PRECISION} \
   -x HPL_DOUBLE_PRECISION_EMULATION_MANTISSA_BIT_COUNT=53 \
   -x MONITOR_GPU=1 \
 \

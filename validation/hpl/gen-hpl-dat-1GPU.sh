@@ -1,10 +1,10 @@
 #!/bin/bash
 GMEM_GB=185
-NGPUS_PERNODE=4
+NGPUS_PERNODE=1
 NTILES=1
 #NB=4096
 NB=2048
-PPN=4
+PPN=1
 
 cal(){
   n=$1
@@ -21,7 +21,6 @@ cal(){
 
 main_hpl(){
   NNODES=$1
-  file=$2
   n=$[PPN*NNODES]
   v1=$(cal $n)
   v2=$[n/v1]
@@ -31,15 +30,8 @@ main_hpl(){
     P=$v2; Q=$v1
   fi
   NTASKS=${n}
-  if [ $NNODES -le 512 ]; then
-    N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-30)*1024*1024*1024/8)/$NB)*$NB"|bc)
-  elif [ $NNODES -le 256 ]; then
-    N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-25)*1024*1024*1024/8)/$NB)*$NB"|bc)
-  else
-    N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-10)*1024*1024*1024/8)/$NB)*$NB"|bc)
-  fi
-  echo $NNODES $N $NB $P $Q
-  cat > $file <<- EOF
+  N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-15)*1024*1024*1024/8)/$NB)*$NB"|bc)
+  cat <<- EOF
 HPLinpack benchmark input file
 Innovative Computing Laboratory, University of Tennessee
 HPL.out      output file name (if any)
@@ -76,8 +68,8 @@ EOF
 
 topdir=/home/cmsupport/workspace/
 mkdir -p ${topdir}/hpl/hpldat
-for i in 1 2 4 8 16 18 32 64 128 256 512 #224 #192 210 #100 #64 #72 #90 #320 400 405 #64 128 256 304 512 #80 #1 2 4 8 16 18 32 36
+for i in 1
 do
-  main_hpl $i ${topdir}/hpl/hpldat/HPL-GB200-${i}N.dat
+  main_hpl $i > ${topdir}/hpl/hpldat/HPL-GB200-1GPU.dat
 done
 
