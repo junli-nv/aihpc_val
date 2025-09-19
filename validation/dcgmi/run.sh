@@ -26,3 +26,5 @@ do
       dcgmi.sbatch
   done
 done
+
+# grep -i failed -r ./logs
