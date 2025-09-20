@@ -37,7 +37,7 @@ elif [ "X${LEVEL}X" == "Xp2hX" ]; then
   set +x
 else
   set -x
-  dcgmi diag -r $LEVEL #-j
+  dcgmi diag -r $LEVEL -j
   set +x
 fi
 end=$(date +%s)
