@@ -9,20 +9,20 @@ cd $logdir
 
 echo Deployment
 for i in *.txt; do
-echo $i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Deployment")'|jq '.tests[].test_summary.status')
-done|grep -v Pass
+echo $logdir/$i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Deployment")'|jq '.tests[].test_summary.status')
+done|grep -i Fail
 
 echo Hardware
 for i in *.txt; do
-echo $i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Hardware")'|jq '.tests[].test_summary.status')
-done|grep -v Pass
+echo $logdir/$i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Hardware")'|jq '.tests[].test_summary.status')
+done|grep -i Fail
 
 echo Stress
 for i in *.txt; do
-echo $i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Stress")'|jq '.tests[].test_summary.status')
-done|grep -v Pass
+echo $logdir/$i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Stress")'|jq '.tests[].test_summary.status')
+done|grep -i Fail
 
 echo Integration
 for i in *.txt; do
-echo $i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Integration")'|jq '.tests[].test_summary.status')
-done|grep -v Pass
+echo $logdir/$i $(cat $i|grep -Ev 'INFO|^\+'|jq '."DCGM Diagnostic".test_categories[]|select (.category=="Integration")'|jq '.tests[].test_summary.status')
+done|grep -i Fail
