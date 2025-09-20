@@ -14,9 +14,12 @@ topdir=/home/cmsupport/workspace
 
 source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
 hpcx_load
-source /etc/profile
-module load shared
-module load cuda12.8/toolkit/12.8.1
+#source /etc/profile
+#module load shared
+#module load cuda12.8/toolkit/12.8.1
+export CUDA_HOME=/home/cmsupport/workspace/cuda
+export PATH=${CUDA_HOME}/bin:$PATH
+export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 export LD_LIBRARY_PATH=${topdir}/nccl/bins:$LD_LIBRARY_PATH
 export PATH=${topdir}/nccl/bins:$PATH
@@ -26,13 +29,13 @@ hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
 echo "INFO: cleaning work begin"
 pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- 'EOF'|dshbak -c
-ipmitool raw 0x3c 0x74 100 &>/dev/null || true
+#ipmitool raw 0x3c 0x74 100 &>/dev/null || true
 pkill -9 nccl || true
-echo 3 > /proc/sys/vm/drop_caches
-echo 1 > /proc/sys/vm/compact_memory
-sysctl -w kernel.numa_balancing=0
-echo never > /sys/kernel/mm/transparent_hugepage/defrag
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
+#echo 3 > /proc/sys/vm/drop_caches
+#echo 1 > /proc/sys/vm/compact_memory
+#sysctl -w kernel.numa_balancing=0
+#echo never > /sys/kernel/mm/transparent_hugepage/defrag
+#echo never > /sys/kernel/mm/transparent_hugepage/enabled
 EOF
 echo "INFO: cleaning work done"
 
@@ -55,8 +58,8 @@ for cmd in ${!tests[@]}; do
   ldd ${topdir}/nccl/bins/${cmd}
   mpirun --allow-run-as-root \
     --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
-    --mca btl_tcp_if_include bond0 \
-    --mca oob_tcp_if_include bond0 \
+    --mca btl_tcp_if_include enP6p3s0f0np0 \
+    --mca oob_tcp_if_include enP6p3s0f0np0 \
     --map-by ppr:2:socket:PE=36 \
     -x PATH=$PATH \
     -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
@@ -67,7 +70,7 @@ for cmd in ${!tests[@]}; do
     -x UCX_TLS=rc_x,cuda \
     -x OMPI_MCA_btl=^openib,smcuda \
 \
-    -x NCCL_SOCKET_IFNAME=bond0 \
+    -x NCCL_SOCKET_IFNAME=enP6p3s0f0np0 \
     -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
     -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5" \
 \
