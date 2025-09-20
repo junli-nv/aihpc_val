@@ -17,4 +17,5 @@ action=$2
 bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
 export bmc_ip
 
-ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} fru print 1
+ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sensor
+
