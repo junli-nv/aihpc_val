@@ -37,7 +37,7 @@ done
 plog-1rack(){
 [ $# -eq 0 ] && logdir=./ || logdir=$1
 racks=(
-$(ls -1 ${logdir}/*-1Rack-*.txt|grep -o -- -1Rack-.*|cut -c8-10|sort|uniq)
+$(ls -1 ${logdir}/*-1Rack-*.txt|grep -o -- -1Rack-.*|cut -c8-16|sort|uniq)
 )
 printf "%20s%10s%20s%20s%20s%20s%20s\n" Rack "TotalRun" "SucessRun" "MAX(TF)perGPU" "MIN(TF)perGPU" "AVG(TF)perGPU" "VAR(%)perGPU"
 for i in ${racks[*]}; do

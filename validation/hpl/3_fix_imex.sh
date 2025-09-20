@@ -10,3 +10,4 @@ md5sum /etc/nvidia-imex/compute_trays.txt
 wc -l /etc/nvidia-imex/compute_trays.txt
 systemctl restart nvidia-imex
 EOF
+

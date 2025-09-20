@@ -9,3 +9,4 @@ bash /home/cmsupport/workspace/hc/checker.sh
 EOF
 #
 # sinfo -R -o "%120E %12U %19H %6t %N"
+

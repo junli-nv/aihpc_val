@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-#timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
+timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
 
 topdir=/home/cmsupport/workspace
 
@@ -33,12 +33,13 @@ export NCCL_MNNVL_ENABLE=0
 #if [ ${#hosts[*]} -ge 128 ]; then
 if [ ${#hosts[*]} -ge 512 ]; then
   export HPL_USE_NVSHMEM=0
+  export HPL_OOC_MODE=1
 else
+  export HPL_OOC_MODE=0
   export HPL_USE_NVSHMEM=1
   export HPL_P2P_AS_BCAST=4 #(0->ncclBcast, 1->ncclSend / Recv, 2->CUDA - aware MPI, 3->host MPI, 4->NVSHMEM)
 fi
 
-export HPL_OOC_MODE=0
 export HPL_EMULATE_DOUBLE_PRECISION=1
 export NCCL_IB_TIMEOUT=25
 export NCCL_IB_RETRY_CNT=10
