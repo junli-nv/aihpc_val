@@ -2,7 +2,7 @@
 #
 #
 ##ulimit -s 8192 #<-- ONLY needed by NCCL 2.27.x but not work well with Nemotron340B
-ulimit -l unlimited 
+ulimit -l unlimited
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 #cmd="numactl --cpunodebind=$[SLURM_LOCALID/4] --membind=$[SLURM_LOCALID/4] $@"
 cmd="numactl --cpunodebind=$[SLURM_LOCALID/2] --membind=$[SLURM_LOCALID/2] $@"

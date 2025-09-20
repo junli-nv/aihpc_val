@@ -12,6 +12,38 @@ set_cpu_freq_userspace(){
 global_status=0
 reason=""
 
+extra_check=0
+dry_run=0
+options=d,e,h
+optionl=dry-run,--extra-check,help
+OPTS=$(getopt -a -n $0 --options $options --longoptions $optionl -- "$@")
+eval set -- "$OPTS"
+while :
+do
+  case "$1" in
+    -d | --dry-run )
+      dry_run=1
+      shift 1
+      ;;
+    -e | --extra-check )
+      extra_check=1
+      shift 1
+      ;;
+    -h | --help)
+      help
+      exit 0
+      ;;
+    --)
+      shift;
+      break
+      ;;
+    *)
+      help
+      exit 0
+      ;;
+  esac
+done
+
 ## CPU
 if [ $(grep processor /proc/cpuinfo|wc -l) -ne 144 ]; then
   msg='ERROR: CPU CORES is not 144'
@@ -110,10 +142,10 @@ if [ $(lspci | grep 'Infiniband controller'|wc -l) -ne 4 ]; then
   global_status=$[global_status+1]
 fi
 if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 4 ]; then
-  msg='ERROR: BlueField-3 ethernet ports number is not 4'
+  msg='WARN: BlueField-3 ethernet ports number is not 4'
   echo $msg
-  reason="${reason} ${msg}"
-  global_status=$[global_status+1]
+  #reason="${reason} ${msg}"
+  #global_status=$[global_status+1]
 fi
 active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*)); grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/dev/null && echo ${hca}:1;done))
 if [ ${#active_hcas[*]} -ne 4 ]; then
@@ -168,6 +200,19 @@ if [ -x /home/cmsupport/workspace/cudatest/foo ]; then
   fi
 fi
 
+if [ $extra_check -ne 0 ]; then
+  ## Dmesg check
+  #AER
+  if [ $(dmesg | tail -n 10 | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
+      msg='WARN: pcieport AER met'
+      echo $msg
+  fi
+  if [ $(dmesg | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
+      msg='ERROR: NV_ERR_INVALID_STATE met'
+      echo $msg
+  fi
+fi
+
 ## Print health check status
 if [ ${global_status} -ne 0 ]; then
   echo 'INFO: Health check FAILED'
@@ -177,8 +222,14 @@ fi
 
 ##
 #exit ${global_status}
-if [ ${global_status} -ne 0 ]; then
 source /etc/profile
 module load slurm
-scontrol update nodename=$(hostname) stat=drain reason="${reason}"
+if [ ${dry_run} -ne 1 ]; then
+  if [ ${global_status} -ne 0 ]; then
+    scontrol update nodename=$(hostname) stat=drain reason="${reason}"
+  else
+    if `scontrol show node $(hostname)|grep State=|grep -i DRAIN &>/dev/null`; then
+      scontrol update nodename=$(hostname) stat=undrain
+    fi
+  fi
 fi

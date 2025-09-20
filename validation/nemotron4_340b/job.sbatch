@@ -10,12 +10,15 @@
 #SBATCH --partition=defq
 #SBATCH --time=00:13:00
 #SBATCH --gpus-per-node=4
-##SBATCH --reservation=junli_val
+#SBATCH --reservation=junli_val
 
 set -x
 
-CONT=/home/cmsupport/workspace/nemo-25.04.rc2.m2.sqsh
-#CONT=/raid/data/nemo-25.04.rc2.m2.sqsh 
+#CONT=/home/cmsupport/workspace/nemo/nemo-25.04.rc2.sqsh
+#CONT=/raid/data/nemo-25.04.rc2.sqsh
+#CONT=/raid/data/nemo-25.04.rc2.m1.sqsh
+#CONT=/raid/data/nemo-25.04.rc2.m2.sqsh
+CONT=/data/nemo-25.04.rc2.m2.sqsh
 
 case ${SLURM_NNODES} in
   16)                single_rack=1 ;;
@@ -51,9 +54,9 @@ export NVTE_FWD_LAYERNORM_SM_MARGIN=16
 export NVTE_BWD_LAYERNORM_SM_MARGIN=16
 export NCCL_P2P_NET_CHUNKSIZE=2097152
 
-nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
+#nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
 #nic=enP5p9s0
-#nic=ibp3s0
+nic=enP6p3s0f0np0
 if [ ${single_rack} -eq 1 ]; then
   export NCCL_DEBUG=INFO
   export NCCL_P2P_LEVEL=NVL
@@ -82,7 +85,7 @@ else
   export NCCL_NVLS_ENABLE=1
   export NCCL_CUMEM_ENABLE=1
   export NCCL_MIN_CTAS=16
-  # 
+  #
   #export NCCL_NET_GDR_LEVEL=SYS ## Need check
 fi
 
