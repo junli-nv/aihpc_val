@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 topdir=$(dirname $(realpath $0))
 
 source $topdir/func.sh
@@ -12,14 +11,14 @@ if [ -z $node ]; then
   exit 1
 fi
 
-
-source ./func.sh
-hostlist=./hosts.list
-
-node=$1
-[ -z "${action}" ] && action=status
-
+action=$2
+[ -z "${action}" ] && action=pxe
+#pxe   : Force PXE boot
+#disk  : Force boot from default Hard-drive
+#bios  : Force boot into BIOS Setup
+ 
 bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
 export bmc_ip
 
-ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} mc info
+ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis bootdev ${action}
+
