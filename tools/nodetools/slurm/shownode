@@ -1,3 +1,0 @@
-#!/bin/bash
-
-scontrol show node $1|grep -E 'NodeName|State|ReservationName'|paste - - -

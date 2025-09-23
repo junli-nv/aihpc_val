@@ -1,5 +1,0 @@
-#!/bin/bash
-
-scontrol update reservationname=TODO nodes-="$1"
-scontrol update reservationname=junli_val nodes+="$1"
-
