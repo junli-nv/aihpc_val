@@ -50,8 +50,7 @@ configure_bf3(){
 }
 
 query_gb200_macs(){
-  macs=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $NF}'|tr ')' ':'|cut -f2 -d':'|sort))
-  echo ${macs[*]}
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $NF}'|tr ')' ':'|cut -f2 -d':'|sort
 }
 
 network_boot_gb200(){
