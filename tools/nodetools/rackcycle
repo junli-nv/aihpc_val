@@ -1,0 +1,28 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+hosts=(
+#GB200-POD1-A{03,05,07,09,11,13,15,17}-Node{01..18}
+#GB200-POD1-B{02,04,06,08,10,12,14,16}-Node{01..18}
+#GB200-POD2-E{03,05,07,09,11,13,15,17}-Node{01..18}
+GB200-POD2-E{13,15,17}-Node{01..18}
+GB200-POD2-F{02,04,06,08,10,12}-Node{01..18}
+#GB200-POD2-F{02,04,06,08,10,12,14,16}-Node{01..18}
+)
+# echo ${#hosts[*]}
+
+i=1; for h in ${hosts[*]}
+do
+  bmc_ip=$(grep -w ${h} ${hostlist} | awk '{print $NF}')
+  ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis power cycle 2>&1 
+  [ $? -eq 0 ] && echo "${h} PASSED" || echo "${h} FAILED"
+  if [ $[i%18] -eq 0 ]; then
+    echo "INFO: Done LOOP=$[i/18] RACK=$(echo $h|cut -c12-14)"
+    sleep 300
+  fi
+  i=$[i+1]
+done

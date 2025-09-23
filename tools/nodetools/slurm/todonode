@@ -1,0 +1,6 @@
+#!/bin/bash
+
+scontrol update reservationname=FIXME nodes-="$1"
+scontrol update reservationname=TODO nodes+="$1"
+scontrol update nodename="$1" state=undrain
+
