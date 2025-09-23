@@ -48,3 +48,21 @@ configure_bf3(){
   #curl -k -s --user "${bmc_username}:${bmc_password}" -X GET -H "Content-Type: application/json" https://${bmc_ip}/redfish/v1/#Systems/System_0/Bios|grep -E 'Socket0Pcie6DisableOptionROM|EnablePcieNicTopology'
   #curl -k -s --user "${bmc_username}:${bmc_password}" -X GET -H "Content-Type: application/json" https://${bmc_ip}/redfish/v1/Registries/BiosAttributeRegistry/BiosAttributeRegistry|grep -E 'Socket0Pcie6DisableOptionROM|EnablePcieNicTopology' -A2
 }
+
+query_gb200_macs(){
+  macs=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $NF}'|tr ')' ':'|cut -f2 -d':'|sort))
+  echo ${macs[*]}
+}
+
+network_boot_gb200(){
+  pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
+  old_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'))
+  pad_boots=($(echo ${pxev4_boots[*]} ${old_boots[*]}|tr ' ' '\n'|sort|uniq -c|grep -v -w ' 2 '|awk '{print $NF}'))
+  new_boots=$(echo ${pxev4_boots[*]} ${pad_boots[*]}|tr -s ' ' ',')
+  echo OLD_BOOT_ORDER=${old_boots[*]}|tr ' ' ','
+  echo NEW_BOOT_ORDER=$new_boots
+  curl -s -k -u $bmc_username:$bmc_password -X PATCH https://$bmc_ip/redfish/v1/Systems/System_0/Settings -d "{\"Boot\":{\"BootOrder\": [${new_boots}]}}"
+  ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis bootdev pxe
+  echo "reboot node"; sleep 1
+  curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
+}
