@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+#Ref: https://docs.nvidia.com/dgx/dgxgb200-user-guide/compute-tray-redfish-commands.html
+#
 topdir=$(dirname $(realpath $0))
 
 source $topdir/passwd.sh
@@ -50,11 +52,22 @@ configure_bf3(){
 }
 
 query_gb200_macs(){
-  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $NF}'|tr ')' ':'|cut -f2 -d':'|sort
+  #curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $NF}'|tr ')' ':'|cut -f2 -d':'|sort|while read i; do
+  #echo $i | sed 's/../&:/g'|cut -c 1-17
+  #done
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4 \
+  | grep -o PciRoot.*|sed -e 's:/MAC: MAC:g' -e 's:/IPv4: IPv4:g'|awk '{print $2, $1}'|while read macA busB
+  do
+    echo $(echo $macA|cut -c5-16|sed 's/../&:/g'|cut -c 1-17) $busB
+  done
 }
 
 network_boot_gb200(){
-  pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
+  target_pci="PciRoot(0x6)"  ##enP6p3s0f0np0
+  target_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4 | grep "${target_pci}" | awk '{print $1}'))
+  all_pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
+  pxev4_boots=(${target_boots[*]} $(echo ${all_pxev4_boots[*]} ${target_boots[*]}|tr ' ' '\n'|sort|uniq -c|grep -v -w ' 2 '|awk '{print $NF}'))
+  #pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
   old_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'))
   pad_boots=($(echo ${pxev4_boots[*]} ${old_boots[*]}|tr ' ' '\n'|sort|uniq -c|grep -v -w ' 2 '|awk '{print $NF}'))
   new_boots=$(echo ${pxev4_boots[*]} ${pad_boots[*]}|tr -s ' ' ',')
@@ -65,3 +78,4 @@ network_boot_gb200(){
   echo "reboot node"; sleep 1
   curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
 }
+
