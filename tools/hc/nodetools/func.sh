@@ -87,6 +87,9 @@ network_boot_gb200(){
   curl -s -k -u $bmc_username:$bmc_password -X PATCH https://$bmc_ip/redfish/v1/Systems/System_0/Settings -d "{\"Boot\":{\"BootOrder\": [${new_boots}]}}"
   ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis bootdev pxe
   echo "reboot node"; sleep 1
-  curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
+  #curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
+  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
+  sleep 1
+  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
 }
 
