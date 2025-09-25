@@ -56,9 +56,13 @@ query_gb200_macs(){
   #echo $i | sed 's/../&:/g'|cut -c 1-17
   #done
   curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4 \
-  | grep -o PciRoot.*|sed -e 's:/MAC: MAC:g' -e 's:/IPv4: IPv4:g'|awk '{print $2, $1}'|while read macA busB
+  |sed -e 's:/MAC:"MAC:g' -e 's:/IPv4:"IPv4:g'|awk -F'"' '{print $2, $7, $6}'|while read boot macA busB
   do
-    echo $(echo $macA|cut -c5-16|sed 's/../&:/g'|cut -c 1-17) $busB
+    echo OS ${boot} $(echo ${macA}|cut -c5-16|sed 's/../&:/g'|cut -c 1-17) ${busB}
+  done
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Managers/BMC_0/EthernetInterfaces|jq '.Members[]."@odata.id"'|tr -d '"'|while read i
+  do
+    curl -s -k -u $bmc_username:$bmc_password "https://${bmc_ip}$i"|jq '.Id,.MACAddress' | paste - - | tr -s ' ' | xargs -I {} echo BMC {}
   done
 }
 
