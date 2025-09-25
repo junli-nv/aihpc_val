@@ -33,8 +33,10 @@ clear_sys_bmc_log_gb200(){
 
 cycle_gb200(){
   curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
-  sleep 2
-  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${oob_ip}/redfish/v1/Chassis/BMC_0/Actions/Oem/NvidiaChassis.AuxPowerReset -d '{"ResetType": "AuxPowerCycle"}'
+  sleep 1
+  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Chassis/BMC_0/Actions/Oem/NvidiaChassis.AuxPowerReset -d '{"ResetType": "AuxPowerCycle"}'
+  sleep 1
+  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
 }
 
 configure_bf3(){
@@ -64,6 +66,11 @@ query_gb200_macs(){
   do
     curl -s -k -u $bmc_username:$bmc_password "https://${bmc_ip}$i"|jq '.Id,.MACAddress' | paste - - | tr -s ' ' | xargs -I {} echo BMC {}
   done
+}
+
+query_gb200_bootorder(){
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -
 }
 
 network_boot_gb200(){
