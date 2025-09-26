@@ -41,8 +41,8 @@ else
 fi
 
 export HPL_EMULATE_DOUBLE_PRECISION=1
-export NCCL_IB_TIMEOUT=25
-export NCCL_IB_RETRY_CNT=10
+#export NCCL_IB_TIMEOUT=25
+#export NCCL_IB_RETRY_CNT=10
 #export NCCL_PATH=/home/cmsupport/workspace/nccl/bins
 #export LD_LIBRARY_PATH=$NCCL_PATH:$LD_LIBRARY_PATH
 

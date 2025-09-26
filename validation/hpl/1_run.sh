@@ -17,7 +17,7 @@ i=0; while [ $i -lt ${#all_hosts[*]} ]; do
   t_racks=($(echo ${t_hosts[*]}|tr ' ' '\n'|cut -c13-15|sort|uniq))
   jobname=${#t_racks[*]}Rack-$(echo ${t_racks[*]}|tr ' ' '_')
   #cat <<- EOF
-  sbatch --reservation=xshang_8 \
+  sbatch --reservation=junli_val \
     -N ${#t_hosts[*]} \
     -w "$(echo ${t_hosts[*]}|tr ' ' ',')" \
     -t 0:15:00 \
