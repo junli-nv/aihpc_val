@@ -127,7 +127,7 @@ if [ ! -f /etc/nvidia-imex/nodes_config.cfg ]; then
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-if [ $(nvidia-imex-ctl -q 2>/dev/null) != "READY" ]; then
+if [ "X$(nvidia-imex-ctl -q 2>/dev/null)" != "XREADY" ]; then
   msg='ERROR: IMEX is not active'
   echo $msg
   reason="${reason} ${msg}"
@@ -201,15 +201,36 @@ if [ -x /home/cmsupport/workspace/cudatest/foo ]; then
 fi
 
 if [ $extra_check -ne 0 ]; then
-  ## Dmesg check
-  #AER
+  ##AER
   if [ $(dmesg | tail -n 10 | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
       msg='WARN: pcieport AER met'
       echo $msg
   fi
+  ##NV_ERR_INVALID_STATE
   if [ $(dmesg | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
       msg='ERROR: NV_ERR_INVALID_STATE met'
       echo $msg
+  fi
+  ##NVME
+  ret=($(
+  for i in $(ls -1 /sys/class/nvme); do
+  echo $i=$[$(blockdev --getsz /dev/${i}n1)*512/1000/1000/1000/1000]
+  done
+  ))
+  a=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=7|wc -l)
+  b=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=1|wc -l)
+  if [ ${#ret[*]} -ne 9 ]; then
+    msg='WARN: NVME disk number is not 9'
+    echo $msg
+  else
+    if [ $a -ne 8 ]; then
+      msg='WARN: NVME data disk number is not 8'
+      echo $msg
+    fi
+    if [ $b -ne 1 ]; then
+      msg='WARN: NVME os disk number is not 1'
+      echo $msg
+    fi
   fi
 fi
 
