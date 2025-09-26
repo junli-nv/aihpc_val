@@ -69,8 +69,12 @@ query_gb200_macs(){
 }
 
 query_gb200_bootorder(){
-  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'
-  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -
+  tmpf=$(mktemp)
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - - > $tmpf
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'|while read i; do
+    grep -w $i $tmpf
+  done
+  rm -f $tmpf
 }
 
 network_boot_gb200(){
