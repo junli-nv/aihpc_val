@@ -27,10 +27,10 @@ source hpc-benchmarks-gpu-env.sh
 #else
 #  export NCCL_MNNVL_ENABLE=0
 #fi
-## Workaround for PDB - NVLINK potential issue cause the HPL stall after nodes>=256
+## GPU residual issue will make HPL become hang with NCCL_MNNVL_ENABLE=1
+## For simplify the test, set NCCL_MNNVL_ENABLE=0 instead.
 export NCCL_MNNVL_ENABLE=0
 
-#if [ ${#hosts[*]} -ge 128 ]; then
 if [ ${#hosts[*]} -ge 512 ]; then
   export HPL_USE_NVSHMEM=0
   export HPL_OOC_MODE=1

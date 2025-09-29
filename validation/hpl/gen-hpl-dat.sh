@@ -33,8 +33,6 @@ main_hpl(){
   NTASKS=${n}
   if [ $NNODES -le 512 ]; then
     N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-30)*1024*1024*1024/8)/$NB)*$NB"|bc)
-  elif [ $NNODES -le 256 ]; then
-    N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-25)*1024*1024*1024/8)/$NB)*$NB"|bc)
   else
     N=$(echo "(sqrt($NNODES*$NGPUS_PERNODE*$NTILES*(${GMEM_GB}-10)*1024*1024*1024/8)/$NB)*$NB"|bc)
   fi

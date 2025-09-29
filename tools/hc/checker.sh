@@ -202,12 +202,12 @@ fi
 
 if [ $extra_check -ne 0 ]; then
   ##AER
-  if [ $(dmesg | tail -n 10 | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
+  if [ $(dmesg --since '1 hour ago' | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
       msg='WARN: pcieport AER met'
       echo $msg
   fi
   ##NV_ERR_INVALID_STATE
-  if [ $(dmesg | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
+  if [ $(dmesg --since '1 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
       msg='ERROR: NV_ERR_INVALID_STATE met'
       echo $msg
   fi
@@ -231,6 +231,12 @@ if [ $extra_check -ne 0 ]; then
       msg='WARN: NVME os disk number is not 1'
       echo $msg
     fi
+  fi
+  ##GPU ECC
+  ret=($(nvidia-smi --format=csv --query-gpu gpu_bus_id,ecc.errors.uncorrected.aggregate.total|grep -v pci.bus_id|tr ',' ' '|while read bus_id ecc; do [ $ecc -ne 0 ] && echo $bus_id; done))
+  if [ ${#ret[*]} -ne 0 ]; then
+    msg="WARN: $(echo ${ret[*]})"
+    echo $msg
   fi
 fi
 

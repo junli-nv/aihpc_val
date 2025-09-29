@@ -57,6 +57,9 @@ export NCCL_P2P_NET_CHUNKSIZE=2097152
 #nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
 #nic=enP5p9s0
 nic=enP6p3s0f0np0
+
+export NVTE_UB_SOCKET_IFNAME=${nic}
+export GLOO_SOCKET_IFNAME=${nic}
 if [ ${single_rack} -eq 1 ]; then
   export NCCL_DEBUG=INFO
   export NCCL_P2P_LEVEL=NVL
