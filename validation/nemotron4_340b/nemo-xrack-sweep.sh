@@ -115,12 +115,27 @@ do
 done
 
 ## Cross rack test - find the best node sets
+##Use the first $max elements per rack
 max=16
 hosts=($(
 for i in ${target_nodes[*]}; do
   tmp_hosts=($(scontrol show hostname ${i}))
   if [ ${#tmp_hosts[*]} -ge ${max} ]; then
     echo ${tmp_hosts[*]}|cut -f1-${max} -d' '
+  else
+    continue
+  fi
+done
+))
+echo ${#hosts[*]}
+echo ${hosts[*]}
+
+##Use the last $max elements per rack
+hosts=($(
+for i in ${target_nodes[*]}; do
+  tmp_hosts=($(scontrol show hostname ${i}))
+  if [ ${#tmp_hosts[*]} -ge ${max} ]; then
+    echo ${tmp_hosts[*]}|tr ' ' '\n'|tac|paste -s -d' '|cut -f1-${max} -d' '
   else
     continue
   fi
@@ -181,7 +196,7 @@ t_racks=($(echo ${t_hosts[*]}|tr ' ' '\n'|cut -c7-15|sort|uniq))
 #echo ${#t_racks[*]}
 #jobname=CLUSTER_COVER-${step}N-$(echo ${t_racks[*]}|tr ' ' '_')
 ret=($(echo ${t_hosts[*]}|tr ' ' '\n'|cut -c7-15|sort|uniq))
-jobname=CLUSTER_COVER-(
+jobname=CLUSTER_COVER-$(
   echo ${ret[*]}|tr ' ' '\n'|cut -f1 -d'-'|sort|uniq|while read i; do
     echo ${i}-$(echo ${ret[*]}|tr ' ' '\n' | grep $i|cut -f2 -d'-'|paste -s -d'_')
   done|paste -s -d'+'
@@ -202,7 +217,7 @@ EOF
 done
 
 ## Check results
-for i in *Rack*.txt; do echo $i $(grep 'iteration 100/' $i|grep -o train_step_timing.*); done
+for i in *Rack*.txt; do echo $i $(grep 'iteration 102/' $i|grep -o train_step_timing.*); done
 
 plog-nemo(){
 printf "%160s%30s%30s\n" FILENAME "train_step_timing(s)" "tflops_per_sec_per_gpu"
@@ -216,7 +231,4 @@ for i in *Rack*.txt; do
 done|sort
 }
 plog-nemo | tee plog-memo.txt
-
-
-
 

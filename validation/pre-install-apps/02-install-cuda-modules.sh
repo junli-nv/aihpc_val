@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# ## Install cuda toolkit
+# #apt list|grep BCM|grep cuda
+# apt install -y 'cuda12.8-sdk/BCM 11' 'cuda12.8-toolkit/BCM 11' 'cuda12.8-visual-tools/BCM 11'
+# module load shared
+# module avail
+# module load cuda12.8/toolkit/12.8.1
+
 cd /home/cmsupport/workspace
 
 # https://developer.nvidia.com/cuda-toolkit-archive
