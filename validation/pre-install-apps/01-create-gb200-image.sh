@@ -150,6 +150,8 @@ for i in ${nics[*]}; do ip link set ${i} up; done
 lldpcli configure system hostname .
 lldpcli configure lldp portidsubtype ifname
 lldpcli configure system interface pattern eth*,eno*,enp*,ens*,enP*
+systemctl restart lldpd
+# lldpcli show neighbors
 
 start_rdma-ndd(){
   while : ; do
