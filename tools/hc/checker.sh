@@ -232,10 +232,14 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
     fi
   fi
-
+  
+  ##Enroot disk check
   enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.*/)
   if [ ! -d $enroot_runtime_path ]; then
     enroot_runtime_path=$(df -Th|grep '/dev/md'|awk '{print $NF}'|head -n1)
+    if [ "X${enroot_runtime_path}" == "X" ]; then
+      enroot_runtime_path=/root
+    fi
   fi
   touch $enroot_runtime_path/test &>/dev/null
   ret=$?
