@@ -98,7 +98,7 @@ echo
 
 s_time=$(date +%s)
 echo "INFO: cleaning work begin"
-pdsh -R ssh -w ${SLURM_JOB_NODELIST} <<- 'EOF'|dshbak -c
+pdsh -f 64 -R ssh -w ${SLURM_JOB_NODELIST} <<- 'EOF'|dshbak -c
 pkill -9 python &>/dev/null || true
 ps -ef|grep python|grep -E 'torch|nemo'|grep -v grep || true
 enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
@@ -113,8 +113,8 @@ timeout 100 bash $PWD/sysinfo.sh 2>&1
 #export ENROOT_TRANSFER_TIMEOUT=12000
 
 export NCCL_DEBUG=WARN
-   #  --container-name=nemo \
 srun --export=ALL \
+  --container-name=nemo \
   --container-writable \
   --container-image "${CONT}" \
   --container-workdir /opt/NeMo \
@@ -127,8 +127,11 @@ if [ $exitcode -ne 0 ]; then
   exit 1
 fi
 
+sleep 10
+
 export NCCL_DEBUG=INFO
 srun --export=ALL \
+  --container-name=nemo \
   --container-writable \
   --container-image "${CONT}" \
   --container-mounts /dev/:/dev,$PWD:$PWD \
@@ -137,6 +140,13 @@ srun --export=ALL \
   bash $PWD/wrapper.sh \
   python -m nemo_run.core.runners.fdl_runner -n $(basename ${CASE}|sed -e 's:_fn_or_script::g') ${CASE}
 exitcode=$?
+
+pdsh -f 64 -R ssh -w ${SLURM_JOB_NODELIST} <<- 'EOF'|dshbak -c
+pkill -9 python &>/dev/null || true
+ps -ef|grep python|grep -E 'torch|nemo'|grep -v grep || true
+enroot list -f|grep pyxis && enroot remove -f $(enroot list -f|grep pyxis) || true
+EOF
+
 set +x
 e_time=$(date +%s)
 echo "INFO: timelimit=${timelimit}(s), real_took=$[e_time-s_time](s)"

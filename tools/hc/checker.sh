@@ -232,6 +232,20 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
     fi
   fi
+
+  enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.*/)
+  if [ ! -d $enroot_runtime_path ]; then
+    enroot_runtime_path=$(df -Th|grep '/dev/md'|awk '{print $NF}'|head -n1)
+  fi
+  touch $enroot_runtime_path/test &>/dev/null
+  ret=$?
+  if [ $ret -ne 0 ]; then
+    msg="ERROR: Can't write to enroot runtime dir: $enroot_runtime_path"
+    echo $msg
+  else
+    rm -f $enroot_runtime_path/test
+  fi
+
   ##GPU ECC
   ret=($(nvidia-smi --format=csv --query-gpu gpu_bus_id,ecc.errors.uncorrected.aggregate.total|grep -v pci.bus_id|tr ',' ' '|while read bus_id ecc; do [ $ecc -ne 0 ] && echo $bus_id; done))
   if [ ${#ret[*]} -ne 0 ]; then
