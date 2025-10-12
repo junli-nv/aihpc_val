@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SACCT_FORMAT="JobID,User,Start,End,Elapsed,WorkDir%30,NodeList%100" sacct -j ${JOBID}
+SACCT_FORMAT="JobID,User,Start,End,Elapsed,AllocNodes,WorkDir%30,NodeList%100" sacct -j ${JOBID}
 
 apt install -y gnuplot-nox
 
