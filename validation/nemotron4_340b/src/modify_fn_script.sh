@@ -25,7 +25,11 @@ fdl_config_path=sys.argv[1]
 p = Path(fdl_config_path)
 fdl_config = p.read_text()
 fdl_buildable: fdl.Buildable = ZlibJSONSerializer().deserialize(fdl_config)
+
 fdl_buildable.trainer.max_steps = 1000000
+fdl_buildable.trainer.callbacks[2].tp_comm_overlap = False
+fdl_buildable.log.tensorboard=tensorboard
+
 fdl_buildable_content =  ZlibJSONSerializer().serialize(fdl_buildable)
 p.write_text(fdl_buildable_content)
 EOF
