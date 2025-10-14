@@ -207,8 +207,18 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
   fi
   ##NV_ERR_INVALID_STATE
-  if [ $(dmesg --since '1 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
+  if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
       msg='ERROR: NV_ERR_INVALID_STATE met'
+      echo $msg
+  fi
+  ## Hardware Error
+  if [ $(dmesg --since '8 hour ago' | grep 'Hardware Error'|wc -l) -ne 0 ]; then
+      msg='ERROR: Hardware Error met'
+      echo $msg
+  fi
+  ## DBE
+  if [ $(dmesg --since '8 hour ago' | grep 'Xid.*uncorrectable double bit error'|wc -l) -ne 0 ]; then
+      msg='ERROR: uncorrectable double bit error met'
       echo $msg
   fi
   ##NVME
