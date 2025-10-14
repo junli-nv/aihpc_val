@@ -221,6 +221,11 @@ if [ $extra_check -ne 0 ]; then
       msg='ERROR: uncorrectable double bit error met'
       echo $msg
   fi
+  ## knvlinkDiscoverPostRxDetLinks
+  if [ $(dmesg --since '8 hour ago' | grep 'NVRM: knvlinkDiscoverPostRxDetLinks'|wc -l) -ne 0 ]; then
+      msg='ERROR: knvlinkDiscoverPostRxDetLinks error met'
+      echo $msg
+  fi
   ##NVME
   ret=($(
   for i in $(ls -1 /sys/class/nvme); do
