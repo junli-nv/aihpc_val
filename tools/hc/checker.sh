@@ -44,6 +44,79 @@ do
   esac
 done
 
+if [ $extra_check -ne 0 ]; then
+  ##AER
+  if [ $(dmesg --since '1 hour ago' | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
+      msg='WARN: pcieport AER met'
+      echo $msg
+  fi
+  ##NV_ERR_INVALID_STATE
+  if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
+      msg='ERROR: NV_ERR_INVALID_STATE met'
+      echo $msg
+  fi
+  ## Hardware Error
+  if [ $(dmesg --since '8 hour ago' | grep 'Hardware Error'|wc -l) -ne 0 ]; then
+      msg='ERROR: Hardware Error met'
+      echo $msg
+  fi
+  ## DBE
+  if [ $(dmesg --since '8 hour ago' | grep 'Xid.*uncorrectable double bit error'|wc -l) -ne 0 ]; then
+      msg='ERROR: uncorrectable double bit error met'
+      echo $msg
+  fi
+  ## knvlinkDiscoverPostRxDetLinks
+  if [ $(dmesg --since '8 hour ago' | grep 'NVRM: knvlinkDiscoverPostRxDetLinks'|wc -l) -ne 0 ]; then
+      msg='ERROR: knvlinkDiscoverPostRxDetLinks error met'
+      echo $msg
+  fi
+  ##NVME
+  ret=($(
+  for i in $(ls -1 /sys/class/nvme); do
+  echo $i=$[$(blockdev --getsz /dev/${i}n1)*512/1000/1000/1000/1000]
+  done
+  ))
+  a=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=7|wc -l)
+  b=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=1|wc -l)
+  if [ ${#ret[*]} -ne 9 ]; then
+    msg='WARN: NVME disk number is not 9'
+    echo $msg
+  else
+    if [ $a -ne 8 ]; then
+      msg='WARN: NVME data disk number is not 8'
+      echo $msg
+    fi
+    if [ $b -ne 1 ]; then
+      msg='WARN: NVME os disk number is not 1'
+      echo $msg
+    fi
+  fi
+  
+  ##Enroot disk check
+  enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.*/)
+  if [ ! -d $enroot_runtime_path ]; then
+    enroot_runtime_path=$(df -Th|grep '/dev/md'|awk '{print $NF}'|head -n1)
+    if [ "X${enroot_runtime_path}" == "X" ]; then
+      enroot_runtime_path=/root
+    fi
+  fi
+  touch $enroot_runtime_path/test &>/dev/null
+  ret=$?
+  if [ $ret -ne 0 ]; then
+    msg="ERROR: Can't write to enroot runtime dir: $enroot_runtime_path"
+    echo $msg
+  else
+    rm -f $enroot_runtime_path/test
+  fi
+
+  ##GPU ECC
+  ret=($(nvidia-smi --format=csv --query-gpu gpu_bus_id,ecc.errors.uncorrected.aggregate.total|grep -v pci.bus_id|tr ',' ' '|while read bus_id ecc; do [ $ecc -ne 0 ] && echo $bus_id; done))
+  if [ ${#ret[*]} -ne 0 ]; then
+    msg="WARN: $(echo ${ret[*]})"
+    echo $msg
+  fi
+fi
+
 ## CPU
 if [ $(grep processor /proc/cpuinfo|wc -l) -ne 144 ]; then
   msg='ERROR: CPU CORES is not 144'
@@ -197,79 +270,6 @@ if [ -x /home/cmsupport/workspace/cudatest/foo ]; then
     echo $msg
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
-  fi
-fi
-
-if [ $extra_check -ne 0 ]; then
-  ##AER
-  if [ $(dmesg --since '1 hour ago' | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
-      msg='WARN: pcieport AER met'
-      echo $msg
-  fi
-  ##NV_ERR_INVALID_STATE
-  if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
-      msg='ERROR: NV_ERR_INVALID_STATE met'
-      echo $msg
-  fi
-  ## Hardware Error
-  if [ $(dmesg --since '8 hour ago' | grep 'Hardware Error'|wc -l) -ne 0 ]; then
-      msg='ERROR: Hardware Error met'
-      echo $msg
-  fi
-  ## DBE
-  if [ $(dmesg --since '8 hour ago' | grep 'Xid.*uncorrectable double bit error'|wc -l) -ne 0 ]; then
-      msg='ERROR: uncorrectable double bit error met'
-      echo $msg
-  fi
-  ## knvlinkDiscoverPostRxDetLinks
-  if [ $(dmesg --since '8 hour ago' | grep 'NVRM: knvlinkDiscoverPostRxDetLinks'|wc -l) -ne 0 ]; then
-      msg='ERROR: knvlinkDiscoverPostRxDetLinks error met'
-      echo $msg
-  fi
-  ##NVME
-  ret=($(
-  for i in $(ls -1 /sys/class/nvme); do
-  echo $i=$[$(blockdev --getsz /dev/${i}n1)*512/1000/1000/1000/1000]
-  done
-  ))
-  a=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=7|wc -l)
-  b=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=1|wc -l)
-  if [ ${#ret[*]} -ne 9 ]; then
-    msg='WARN: NVME disk number is not 9'
-    echo $msg
-  else
-    if [ $a -ne 8 ]; then
-      msg='WARN: NVME data disk number is not 8'
-      echo $msg
-    fi
-    if [ $b -ne 1 ]; then
-      msg='WARN: NVME os disk number is not 1'
-      echo $msg
-    fi
-  fi
-  
-  ##Enroot disk check
-  enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.*/)
-  if [ ! -d $enroot_runtime_path ]; then
-    enroot_runtime_path=$(df -Th|grep '/dev/md'|awk '{print $NF}'|head -n1)
-    if [ "X${enroot_runtime_path}" == "X" ]; then
-      enroot_runtime_path=/root
-    fi
-  fi
-  touch $enroot_runtime_path/test &>/dev/null
-  ret=$?
-  if [ $ret -ne 0 ]; then
-    msg="ERROR: Can't write to enroot runtime dir: $enroot_runtime_path"
-    echo $msg
-  else
-    rm -f $enroot_runtime_path/test
-  fi
-
-  ##GPU ECC
-  ret=($(nvidia-smi --format=csv --query-gpu gpu_bus_id,ecc.errors.uncorrected.aggregate.total|grep -v pci.bus_id|tr ',' ' '|while read bus_id ecc; do [ $ecc -ne 0 ] && echo $bus_id; done))
-  if [ ${#ret[*]} -ne 0 ]; then
-    msg="WARN: $(echo ${ret[*]})"
-    echo $msg
   fi
 fi
 
