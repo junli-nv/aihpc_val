@@ -47,27 +47,27 @@ done
 if [ $extra_check -ne 0 ]; then
   ##AER
   if [ $(dmesg --since '1 hour ago' | grep 'pcieport.*AER:'|wc -l) -ne 0 ]; then
-      msg='WARN: pcieport AER met'
+      msg='WARN: pcieport AER shown in dmesg'
       echo $msg
   fi
   ##NV_ERR_INVALID_STATE
   if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
-      msg='ERROR: NV_ERR_INVALID_STATE met'
+      msg='ERROR: NV_ERR_INVALID_STATE shown in dmesg'
       echo $msg
   fi
   ## Hardware Error
   if [ $(dmesg --since '8 hour ago' | grep 'Hardware Error'|wc -l) -ne 0 ]; then
-      msg='ERROR: Hardware Error met'
+      msg='ERROR: Hardware Error shown in dmesg'
       echo $msg
   fi
   ## DBE
   if [ $(dmesg --since '8 hour ago' | grep 'Xid.*uncorrectable double bit error'|wc -l) -ne 0 ]; then
-      msg='ERROR: uncorrectable double bit error met'
+      msg='ERROR: uncorrectable double bit error shown in dmesg'
       echo $msg
   fi
   ## knvlinkDiscoverPostRxDetLinks
   if [ $(dmesg --since '8 hour ago' | grep 'NVRM: knvlinkDiscoverPostRxDetLinks'|wc -l) -ne 0 ]; then
-      msg='ERROR: knvlinkDiscoverPostRxDetLinks error met'
+      msg='ERROR: knvlinkDiscoverPostRxDetLinks error shown in dmesg'
       echo $msg
   fi
   ##NVME
