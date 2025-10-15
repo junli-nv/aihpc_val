@@ -112,7 +112,7 @@ if [ $extra_check -ne 0 ]; then
   ##GPU ECC
   ret=($(nvidia-smi --format=csv --query-gpu gpu_bus_id,ecc.errors.uncorrected.aggregate.total|grep -v pci.bus_id|tr ',' ' '|while read bus_id ecc; do [ $ecc -ne 0 ] && echo $bus_id; done))
   if [ ${#ret[*]} -ne 0 ]; then
-    msg="WARN: $(echo ${ret[*]})"
+    msg="WARN: GPU ECC: $(echo ${ret[*]})"
     echo $msg
   fi
 fi
