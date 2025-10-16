@@ -15,14 +15,6 @@ fdl_buildable: fdl.Buildable = ZlibJSONSerializer().deserialize(fdl_config)
 print(fdl_buildable)
 EOF
 
-#tensorboard = run.Config(
-#    TensorBoardLogger,
-#    save_dir="nemotron340_tb",
-#    name="experiment-512nodes",
-#)
-#fdl_buildable.log.tensorboard=tensorboard
-#fdl_buildable.log.log_dir="/home/cmsupport/workspace/aihpc_val/validation/nemotron4_340b/nemo_run_logs/512nodes"
-
 cat > update_fn_max_steps.py <<- 'EOF'
 from pathlib import Path
 import fiddle as fdl
@@ -35,7 +27,10 @@ fdl_config = p.read_text()
 fdl_buildable: fdl.Buildable = ZlibJSONSerializer().deserialize(fdl_config)
 
 fdl_buildable.trainer.max_steps = 1000000
-fdl_buildable.trainer.callbacks[2].tp_comm_overlap = False
+
+## WA: node imbalance cause nemo hang, disable tp_comm_overlap to workaround the issue
+##     This will slow down performance
+# fdl_buildable.trainer.callbacks[2].tp_comm_overlap = False
 
 fdl_buildable_content =  ZlibJSONSerializer().serialize(fdl_buildable)
 p.write_text(fdl_buildable_content)
