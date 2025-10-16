@@ -194,7 +194,7 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
 
     import os
-    all_files = subprocess.check_output('find -name LOG_*', shell=True).decode('utf-8').strip().split('\n')
+    all_files = subprocess.check_output('find . -name LOG_*', shell=True).decode('utf-8').strip().split('\n')
     BASE_PATH = os.getcwd()
 
     loaded_tests = load_nccl_tests(BASE_PATH, all_files)
