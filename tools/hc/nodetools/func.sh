@@ -97,3 +97,97 @@ network_boot_gb200(){
   curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
 }
 
+sensors(){
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports|jq '.Members[]."@odata.id"'|tr -d '"'|while read i; do
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq -r '.MetricValues[]|[.Timestamp,.MetricProperty,.MetricValue]|@tsv' | column -t
+done
+}
+
+query_firmware(){
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/UpdateService/FirmwareInventory|jq '.Members[]."@odata.id"'|tr -d '"'|while read i; do
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq -r '[.Id,.Version]|@tsv'|column -t
+done
+}
+
+power_ac_cycle(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType":"AuxPowerCycleForce"}' \
+  https://${bmc_ip}/redfish/v1/Chassis/BMC_0/Actions/Oem/NvidiaChassis.AuxPowerReset
+}
+
+power_graceful_shutdown(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "GracefulShutdown"}' \
+  https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+}
+
+power_force_off(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "ForceOff"}' \
+  https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+}
+
+power_on(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "On"}' \
+  https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+}
+
+power_cycle(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "PowerCycle"}' \
+  https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset 
+}
+
+hmc_graceful_restart(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "GracefulRestart"}' \
+  https://${bmc_ip}/redfish/v1/Managers/HGX_BMC_0/Actions/Manager.Reset
+}
+
+hmc_force_restart(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "ForceRestart"}' \
+  https://${bmc_ip}/redfish/v1/Managers/HGX_BMC_0/Actions/Manager.Reset
+}
+
+bmc_restart(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X POST \
+  -d '{"ResetType": "ForceRestart", "Description": "BMC bundle update curl"}' \
+  https://${bmc_ip}/redfish/v1/Managers/BMC_0/Actions/Manager.Reset
+}
+
+add_user(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -H "Content-Type: application/json" \
+  -X POST \
+  -d '{"UserName": "supperuser", "Password": "P@ss$1234", "RoleId": "Operator"}' \
+  https://${bmc_ip}/redfish/v1/AccountService/Accounts
+}
+
+update_passwd(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -H "Content-Type: application/json" \
+  https://${bmc_ip}/redfish/v1/AccountService/Accounts/${bmc_username} \
+  --data '{ "Attributes": { "Password": "NEW_PASSWORD" } }'
+}
+
+enable_ipmi(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  -X PATCH \
+  -d '{ "IPMI": {"ProtocolEnabled": true} }' \
+  https://${bmc_ip}/redfish/v1/Managers/BMC_0/NetworkProtocol
+}
+
+check_ipmi(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  https://${bmc_ip}/redfish/v1/Managers/BMC_0/NetworkProtocol | jq '.IPMI'
+}
