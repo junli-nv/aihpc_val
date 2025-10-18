@@ -195,7 +195,7 @@ if [ $(ls -1 /dev/nvidia-caps-imex-channels/|wc -l) -lt 1 ]; then
   global_status=$[global_status+1]
 fi
 if [ ! -f /etc/nvidia-imex/nodes_config.cfg ]; then
-  msg='ERROR: IMEX /etc/nvidia-imex/nodes_config.cfg doesnt exist. Restart nvidia-imex-config and nvidia-imex service'
+  msg='ERROR: IMEX /etc/nvidia-imex/nodes_config.cfg doesnt exist. Restart nvidia-imex service'
   echo $msg
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
