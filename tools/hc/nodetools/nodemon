@@ -1,0 +1,57 @@
+#!/bin/bash
+
+source /etc/profile &>/dev/null
+module load slurm
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+nodes=($(scontrol show hostname ${nodelist}))
+
+timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+
+ms=(
+/redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_TempAvg_0
+/redfish/v1/Chassis/HGX_CPU_1/Sensors/ProcessorModule_1_CPU_0_TempAvg_0
+/redfish/v1/Chassis/HGX_GPU_0/Sensors/HGX_GPU_0_TEMP_1
+/redfish/v1/Chassis/HGX_GPU_1/Sensors/HGX_GPU_1_TEMP_1
+/redfish/v1/Chassis/HGX_GPU_2/Sensors/HGX_GPU_2_TEMP_1
+/redfish/v1/Chassis/HGX_GPU_3/Sensors/HGX_GPU_3_TEMP_1
+/redfish/v1/Chassis/PDB_0/Sensors/PDB_0_Inlet_Temp_0
+/redfish/v1/Chassis/Riser_Slot1_BlueField_3_DPU/Sensors/BF3_Slot_1_Temp
+/redfish/v1/Chassis/Riser_Slot2_BlueField_3_DPU/Sensors/BF3_Slot_2_Temp
+/redfish/v1/Chassis/IO_Board_0/Sensors/IO_Board_0_CX7_0_Temp
+/redfish/v1/Chassis/IO_Board_0/Sensors/IO_Board_0_CX7_1_Temp
+/redfish/v1/Chassis/IO_Board_1/Sensors/IO_Board_1_CX7_0_Temp
+/redfish/v1/Chassis/IO_Board_1/Sensors/IO_Board_1_CX7_1_Temp
+/redfish/v1/Chassis/Chassis_0/Sensors/Chassis_0_TotalHSC_Power_0
+)
+echo "TIMESTAMP,NODE,$(for i in ${ms[*]}; do echo ${i##*/}; done|paste -s -d ',')"
+
+mon(){
+node=$1
+bmc_ip=$2
+rets=($(
+for i in ${ms[*]}; do
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i} \
+    | jq -r '.Reading'
+done
+))
+echo "${timestamp},${node},$(for i in ${rets[*]}; do echo ${i%%\.*}; done|paste -s -d ',')"
+}
+
+(
+for node in ${nodes[*]}; do
+  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  mon $node $bmc_ip &
+done
+wait
+)|sed -e 's:null:00:g' | sort -k2 -t ','
