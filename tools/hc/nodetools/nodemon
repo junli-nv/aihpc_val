@@ -55,4 +55,4 @@ for node in ${nodes[*]}; do
   mon $node $bmc_ip &
 done
 wait
-)|sed -e 's:null:00:g' | sort -k2 -t ','
+)|sed -e 's:null:NA:g' | sort -k2 -t ','
