@@ -49,6 +49,11 @@ pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ibstatus|grep -E 'Infiniband|state:'|paste - - -
 EOF
 
+echo -e "\n########INFO: Check IFace device status(Expected: all nodes use the same interface connect to default gatewawy)"
+pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
+ip r sh|grep default|grep -o dev.*|cut -f2 -d' '
+EOF
+
 echo -e "\n########INFO: Check IMEX channel devices(Expected: At least one channel exist)"
 pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ls -1 /dev/nvidia-caps-imex-channels/
