@@ -18,6 +18,7 @@ nodes=($(scontrol show hostname ${nodelist}))
 
 timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
 
+# curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports|jq '.Members[]."@odata.id"'|tr -d '"'|while read i; do curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq '.MetricValues[].MetricProperty'; done|tr -d '"'
 ms=(
 /redfish/v1/Chassis/HGX_CPU_0/Sensors/ProcessorModule_0_CPU_0_TempAvg_0
 /redfish/v1/Chassis/HGX_CPU_1/Sensors/ProcessorModule_1_CPU_0_TempAvg_0
