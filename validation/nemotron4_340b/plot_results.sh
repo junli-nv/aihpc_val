@@ -20,6 +20,7 @@ plot_dir(){
   logs=($(ls -1 *.txt *.out *.log))
   for i in ${logs[*]}; do
     log=$i
+    echo $(realpath ${logdir})/$log
     if [ $(grep iteration.*train_step_timing $log|wc -l) -gt 10 ]; then
       awk -F'|' '/iteration.*train_step_timing/{print $8}' $log|awk '{print $NF}' \
         | gnuplot -e "set title '$(basename $log|tr '_' '+')'; set term dumb size 300,50; set yrange [0:10]; set ytics 0.5; plot '-' with   linespoints"
