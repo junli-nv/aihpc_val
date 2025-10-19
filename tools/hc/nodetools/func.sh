@@ -2,7 +2,7 @@
 #
 #Ref: https://docs.nvidia.com/dgx/dgxgb200-user-guide/compute-tray-redfish-commands.html
 #
-topdir=$(dirname $(realpath $0))
+topdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source $topdir/passwd.sh
 export hostlist=$topdir/hosts.list
