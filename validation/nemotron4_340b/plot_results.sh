@@ -1,12 +1,12 @@
 #!/bin/bash
 
-plog(){
+plot(){
   jid=$1
-  logs=($(ls -1 $(dirname $(sacct -o 'StdOut%1000' -j $jid|grep out))/*${jid}_*.out))
+  logs=($(ls -1 $(dirname $(sacct -o 'StdOut%1000' -j $jid|grep -E '.txt|.out|.log'))/*${jid}*{.txt,.log,.out} 2>/dev/null))
   for i in ${logs[*]}; do
   echo $i
-  awk -F'|' '/iteration.*train_step_timing/{print $8}' $i|awk '{print $NF}' \
-    | gnuplot -e "set title '$(basename $i|tr '_' '+')'; set term dumb size 300,50; set yrange [0:10]; set ytics 0.5; plot '-' with linespoints"
+  awk -F'|' '/iteration.*train_step_timing/{print $8}' $i 2>/dev/null|awk '{print $NF}' \
+    | gnuplot -e "set title '$(basename $i|tr '_' '+')'; set term dumb size 300,50; set yrange [0:10]; set ytics 0.5; plot '-' with linespoints" 2>/dev/null
   done
 }
 
