@@ -22,7 +22,8 @@ node=$1
 bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
 export bmc_ip
 
-ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sol deactivate
+ipmitool -C 17 -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sol deactivate
 sleep 1
-ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sol activate
+ipmitool -C 17 -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sol activate
 
+# ssh root@${bmc_ip} -p 2200
