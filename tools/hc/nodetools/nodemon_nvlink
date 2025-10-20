@@ -1,0 +1,70 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+action=$2
+[ -z "${action}" ] && action=bw
+
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python-hostlist/hostlist -e ${nodelist}))
+
+timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+
+mon_bw(){
+node=$1
+bmc_ip=$2
+tmpf=$(mktemp)
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/HGX_ProcessorPortMetrics_0 \
+  | jq  -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | column -t \
+  | grep -E '/(RXBytes|TXBytes)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf}
+for i in GPU_0 GPU_1 GPU_2 GPU_3; do
+echo "${timestamp},${node},[RXBytes_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/RXBytes/{print int($NF/1000/1000/1000/1000)}'|paste -s -d ',')"
+done
+for i in GPU_0 GPU_1 GPU_2 GPU_3; do
+echo "${timestamp},${node},[TXBytes_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/TXBytes/{print int($NF/1000/1000/1000/1000)}'|paste -s -d ',')"
+done
+rm -f ${tmpf}
+}
+
+mon_err(){
+node=$1
+bmc_ip=$2
+tmpf=$(mktemp)
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/HGX_ProcessorPortMetrics_0 \
+  | jq  -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | column -t \
+  | grep -E '/(LinkDownedCount|EffectiveError)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf}
+for i in GPU_0 GPU_1 GPU_2 GPU_3; do
+echo "${timestamp},${node},[LinkDownedCount_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/LinkDownedCount/{print ($NF)}'|paste -s -d ',')"
+done
+for i in GPU_0 GPU_1 GPU_2 GPU_3; do
+echo "${timestamp},${node},[EffectiveError_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/EffectiveError/{print ($NF)}'|paste -s -d ',')"
+done
+rm -f ${tmpf}
+}
+
+if [ "X${action}X" == "XbwX" ]; then
+(
+for node in ${nodes[*]}; do
+  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  mon_bw $node $bmc_ip &
+done
+wait
+)|sort -k2 -t ','
+else
+(
+for node in ${nodes[*]}; do
+  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  mon_err $node $bmc_ip &
+done
+wait
+)|sort -k2 -t ','
+fi
