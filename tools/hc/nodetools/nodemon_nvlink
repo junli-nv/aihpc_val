@@ -22,17 +22,34 @@ timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
 mon_bw(){
 node=$1
 bmc_ip=$2
-tmpf=$(mktemp)
+duration=$3
+
+tmpf_a=$(mktemp)
+tmpf_b=$(mktemp)
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/HGX_ProcessorPortMetrics_0 \
   | jq  -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | column -t \
-  | grep -E '/(RXBytes|TXBytes)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf}
+  | grep -E '/(RXBytes|TXBytes)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf_a}
+sleep ${duration}
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/HGX_ProcessorPortMetrics_0 \
+  | jq  -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | column -t \
+  | grep -E '/(RXBytes|TXBytes)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf_b}
+
 for i in GPU_0 GPU_1 GPU_2 GPU_3; do
-echo "${timestamp},${node},[RXBytes_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/RXBytes/{print int($NF/1000/1000/1000/1000)}'|paste -s -d ',')"
+a=($(cat ${tmpf_a}|grep -w $i|sort -k3 -n -t'_'|awk '/RXBytes/{print int($NF/1000/1000/1000)}'|paste -s -d ' '))
+b=($(cat ${tmpf_b}|grep -w $i|sort -k3 -n -t'_'|awk '/RXBytes/{print int($NF/1000/1000/1000)}'|paste -s -d ' '))
+c=($( i=0;while [ $i -lt ${#a[*]} ]; do echo $[${b[i]}-${a[i]}]; i=$[i+1]; done ))
+echo "${timestamp},${node},[RXGBytes/s_${i}],$(echo ${c[*]}|tr ' ' ',')"
 done
+
 for i in GPU_0 GPU_1 GPU_2 GPU_3; do
-echo "${timestamp},${node},[TXBytes_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/TXBytes/{print int($NF/1000/1000/1000/1000)}'|paste -s -d ',')"
+a=($(cat ${tmpf_a}|grep -w $i|sort -k3 -n -t'_'|awk '/TXBytes/{print int($NF/1000/1000/1000)}'|paste -s -d ' '))
+b=($(cat ${tmpf_b}|grep -w $i|sort -k3 -n -t'_'|awk '/TXBytes/{print int($NF/1000/1000/1000)}'|paste -s -d ' '))
+c=($( i=0;while [ $i -lt ${#a[*]} ]; do echo $[${b[i]}-${a[i]}]; i=$[i+1]; done ))
+echo "${timestamp},${node},[TXGBytes/s_${i}],$(echo ${c[*]}|tr ' ' ',')"
 done
-rm -f ${tmpf}
+
+rm -f ${tmpf_a}
+rm -f ${tmpf_b}
 }
 
 mon_err(){
@@ -55,7 +72,7 @@ if [ "X${action}X" == "XbwX" ]; then
 (
 for node in ${nodes[*]}; do
   bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-  mon_bw $node $bmc_ip &
+  mon_bw $node $bmc_ip 1 &
 done
 wait
 )|sort -k2 -t ','
