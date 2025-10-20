@@ -220,14 +220,14 @@ if [ $(lspci | grep 'Ethernet.*BlueField-3'|wc -l) -ne 4 ]; then
   #reason="${reason} ${msg}"
   #global_status=$[global_status+1]
 fi
-active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*)); grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/dev/null && echo ${hca}:1;done))
+active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null); [ ! -z $hca ] && grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/dev/null && echo ${hca}:1;done))
 if [ ${#active_hcas[*]} -ne 4 ]; then
   msg="WARNING: Active HCA number is not 4" # $(echo ${active_hcas[*]}|tr ' ' ',')
   echo $msg
   reason="${reason} ${msg}"
   global_status=$[global_status+1]
 fi
-hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*));done))
+hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null);done))
 ret=($(
 for dev in ${hcas[*]}; do
   link_downed=$(</sys/class/infiniband/${dev}/ports/1/counters/link_downed)
