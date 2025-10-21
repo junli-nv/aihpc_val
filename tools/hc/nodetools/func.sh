@@ -36,7 +36,7 @@ cycle_gb200(){
   sleep 1
   curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Chassis/BMC_0/Actions/Oem/NvidiaChassis.AuxPowerReset -d '{"ResetType": "AuxPowerCycle"}'
   sleep 1
-  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
+  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "On"}'
 }
 
 configure_bf3(){
@@ -89,12 +89,12 @@ network_boot_gb200(){
   echo OLD_BOOT_ORDER=${old_boots[*]}|tr ' ' ','
   echo NEW_BOOT_ORDER=$new_boots
   curl -s -k -u $bmc_username:$bmc_password -X PATCH https://$bmc_ip/redfish/v1/Systems/System_0/Settings -d "{\"Boot\":{\"BootOrder\": [${new_boots}]}}"
-  ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis bootdev pxe
+  #ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} chassis bootdev pxe
   echo "reboot node"; sleep 1
-  #curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
-  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
-  sleep 1
-  curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOn"}'
+  curl -s -k -u $bmc_username:$bmc_password  -X POST https://$bmc_ip/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "PowerCycle"}'
+  #curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "ForceOff"}'
+  #sleep 1
+  #curl -k -s --user "${bmc_username}:${bmc_password}" -H 'Content-Type: application/json' -X POST https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset -d '{"ResetType": "On"}'
 }
 
 sensors(){
