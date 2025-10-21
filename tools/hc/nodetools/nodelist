@@ -1,0 +1,8 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+awk '{print $1}' ${hostlist}
