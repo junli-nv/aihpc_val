@@ -78,8 +78,9 @@ query_gb200_bootorder(){
 }
 
 network_boot_gb200(){
-  target_pci="PciRoot(0x6)"  ##enP6p3s0f0np0
-  target_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4 | grep "${target_pci}" | awk '{print $1}'))
+  #target_pci="PciRoot(0x6)"  ##enP6p3s0f0np0
+  #target_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4 | grep "${target_pci}" | awk '{print $1}'))
+  target_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - -|grep PXEv4|grep -v USB|awk '{print $1}'))
   all_pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
   pxev4_boots=(${target_boots[*]} $(echo ${all_pxev4_boots[*]} ${target_boots[*]}|tr ' ' '\n'|sort|uniq -c|grep -v -w ' 2 '|awk '{print $NF}'))
   #pxev4_boots=($(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName'|paste - -|grep PXEv4|awk '{print $1}'))
