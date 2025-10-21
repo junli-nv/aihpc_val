@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no -o PreferredAuthentications=publickey"
+export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no" #-o PreferredAuthentications=publickey"
 
 need_validate_nodes=(
 #$(sinfo -N|grep -E 'GB200-DH420-.*-P2|GB200-DH430-.*-P3'|awk '{print $1}'|paste -s -d ' ')
