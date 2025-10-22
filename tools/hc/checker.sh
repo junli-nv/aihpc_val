@@ -54,7 +54,7 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
   fi
   ##NV_ERR_INVALID_STATE
-  if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE.*nv_gpu_ops.c|wc -l) -ne 0 ]; then
+  if [ $(dmesg --since '8 hour ago' | grep NV_ERR_INVALID_STATE|wc -l) -ne 0 ]; then
       msg='ERROR: NV_ERR_INVALID_STATE shown in dmesg'
       echo $msg
   fi
