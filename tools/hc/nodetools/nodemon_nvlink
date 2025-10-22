@@ -51,6 +51,7 @@ done
 rm -f ${tmpf_a}
 rm -f ${tmpf_b}
 }
+export -f mon_bw
 
 mon_err(){
 node=$1
@@ -67,12 +68,13 @@ echo "${timestamp},${node},[EffectiveError_${i}],$(cat ${tmpf}|grep -w $i|sort -
 done
 rm -f ${tmpf}
 }
+export -f mon_err
 
 if [ "X${action}X" == "XbwX" ]; then
 (
 for node in ${nodes[*]}; do
   bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-  mon_bw $node $bmc_ip 1 &
+  timeout 10 bash -c "mon_bw $node $bmc_ip 1" &
 done
 wait
 )|sort -k2 -t ','
@@ -80,7 +82,7 @@ else
 (
 for node in ${nodes[*]}; do
   bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-  mon_err $node $bmc_ip &
+  timeout 10 bash -c "mon_err $node $bmc_ip" &
 done
 wait
 )|sort -k2 -t ','
