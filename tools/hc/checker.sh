@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+topdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 set_cpu_freq_userspace(){
   for i in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo userspace > $i; done
@@ -275,8 +276,8 @@ if [ $(nvidia-smi topo -p2p n|grep GPU[0-9].*OK|wc -l) -eq 0 ]; then
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
 fi
-if [ -x /home/cmsupport/workspace/cudatest/foo ]; then
-  timeout 3 /home/cmsupport/workspace/cudatest/foo &>/dev/null
+if [ -x ${topdir}/cudatest/foo ]; then
+  timeout 3 ${topdir}/cudatest/foo &>/dev/null
   ret=$?
   if [ $ret -ne 0 ]; then
     msg='ERROR: Cannot run even a simple CUDA app'
