@@ -5,14 +5,26 @@ topdir=$(dirname $(realpath $0))
 source $topdir/func.sh
 hostlist=$topdir/hosts.list
 
-node=$1
-if [ -z $node ]; then
-  echo "$(basename $0) nodename" 
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
   exit 1
 fi
 
-bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-export bmc_ip
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python-hostlist/hostlist -e ${nodelist}))
 
-ping ${bmc_ip} 
+main(){
+node=$1
+bmc_ip=$2
+ret=$(timeout 5 ping -c 3 ${bmc_ip} &>/dev/null && echo pingable || echo unreachable)
+echo "${node},${bmc_ip},${ret}"
+}
 
+(
+for node in ${nodes[*]}; do
+  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  main $node $bmc_ip &
+done
+wait
+)| sort -k1 -t ','
