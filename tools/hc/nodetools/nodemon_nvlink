@@ -59,12 +59,15 @@ bmc_ip=$2
 tmpf=$(mktemp)
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/HGX_ProcessorPortMetrics_0 \
   | jq  -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | column -t \
-  | grep -E '/(LinkDownedCount|EffectiveError)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf}
+  | grep -E '/(LinkDownedCount|LinkDownReasonCode|EffectiveError)'|tr '/' ' '|awk '{print $6,$8,$(NF-1),$NF}' > ${tmpf}
 for i in GPU_0 GPU_1 GPU_2 GPU_3; do
 echo "${timestamp},${node},[LinkDownedCount_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/LinkDownedCount/{print ($NF)}'|paste -s -d ',')"
 done
 for i in GPU_0 GPU_1 GPU_2 GPU_3; do
 echo "${timestamp},${node},[EffectiveError_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/EffectiveError/{print ($NF)}'|paste -s -d ',')"
+done
+for i in GPU_0 GPU_1 GPU_2 GPU_3; do
+echo "${timestamp},${node},[LinkDownReasonCode_${i}],$(cat ${tmpf}|grep -w $i|sort -k3 -n -t'_'|awk '/LinkDownReasonCode/{print ($NF)}'|sort|uniq -c|while read a b; do echo "${a}*${b}"; done|paste -s -d',')"
 done
 rm -f ${tmpf}
 }
