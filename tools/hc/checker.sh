@@ -244,7 +244,7 @@ ret=($(
 for dev in ${hcas[*]}; do
   link_w=($(mlxlink -d ${dev} --port_type pcie | grep Width | awk '{print $(NF-1)}'))
   if [[ ${link_w[0]} != "16X" ]]; then
-    echo "${dev} Link Width:${link_w[0]}"
+    echo "${dev}[LinkWidth]:${link_w[0]}"
   fi
 done
 ))
