@@ -240,6 +240,17 @@ done
 if [ ${#ret[*]} -ne 0 ]; then
   echo "WARNING: ${ret[*]}"
 fi
+ret=($(
+for dev in ${hcas[*]}; do
+  link_w=($(mlxlink -d ${dev} --port_type pcie | grep Width | awk '{print $(NF-1)}'))
+  if [[ ${link_w[0]} != "16X" ]]; then
+    echo "${dev} Link Width:${link_w[0]}"
+  fi
+done
+))
+if [ ${#ret[*]} -ne 0 ]; then
+  echo "WARNING: ${ret[*]}"
+fi
 
 ## NFS
 if `df -Th|grep master:/home` &>/dev/null; then
