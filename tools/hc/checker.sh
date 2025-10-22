@@ -73,7 +73,7 @@ if [ $extra_check -ne 0 ]; then
   ##NVME
   ret=($(
   for i in $(ls -1 /sys/class/nvme); do
-  echo $i=$[$(blockdev --getsz /dev/${i}n1)*512/1000/1000/1000/1000]
+  echo $i=$[$(blockdev --getsz /dev/${i}n[0-9])*512/1000/1000/1000/1000]
   done
   ))
   a=$(echo ${ret[*]}|tr ' ' '\n'|grep nvme.*=7|wc -l)
