@@ -17,7 +17,7 @@ action=$2
 # nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
 nodes=($(python3 ${topdir}/python-hostlist/hostlist -e ${nodelist}))
 
-timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+export timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
 
 mon_bw(){
 node=$1
