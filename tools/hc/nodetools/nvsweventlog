@@ -7,13 +7,22 @@ hostlist=$topdir/hosts.list
 
 node=$1
 if [ -z $node ]; then
-  echo "$(basename $0) nodename [bmc|hmc|clear]"
+  echo "$(basename $0) nodename [bmc|clear]"
   exit 1
 fi
 
 nvswitch_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
 
-curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries"|jq '.Members[]."Id"'|tr -d '"'|sort -n|tail -n 300|while read i
+part=$2
+case ${part} in
+"clear")
+  curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" -H 'Content-Type: application/json' -X POST "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Actions/LogService.ClearLog"
+  ;;
+*)
+  curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries"|jq '.Members[]."Id"'|tr -d '"'|sort -n|tail -n 300|while read i
 do
   curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries/${i}"|jq '.Created,.Severity,.Message'|paste - - -|tr -s '[:space:]'
 done
+  ;;
+esac
+
