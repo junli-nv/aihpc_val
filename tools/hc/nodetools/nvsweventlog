@@ -24,7 +24,7 @@ do
   curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries/${i}"|jq '.Created,.Severity,.Message'|paste - - -|tr -s '[:space:]'
 done|while read line
 do
-echo "${node}:${timestamp},${line}"
+echo "${node}:${line}"
 done
 }
 
