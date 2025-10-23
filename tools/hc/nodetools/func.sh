@@ -145,6 +145,11 @@ power_cycle(){
   https://${bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset 
 }
 
+power_status(){
+  curl -k -s --user "${bmc_username}:${bmc_password}" \
+  https://${bmc_ip}/redfish/v1/Systems/System_0|jq '.PowerState' 
+}
+
 hmc_graceful_restart(){
   curl -k -s --user "${bmc_username}:${bmc_password}" \
   -X POST \
