@@ -1,0 +1,37 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python-hostlist/hostlist -e ${nodelist}))
+
+timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+
+mon(){
+node=$1
+nvswitch_bmc_ip=$2
+curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries"|jq '.Members[]."Id"'|tr -d '"'|sort -n|tail -n 300|while read i
+do
+  curl -k -s --user "${nvswitch_bmc_user}:${nvswitch_bmc_pass}" "https://${nvswitch_bmc_ip}/redfish/v1/Systems/System_0/LogServices/EventLog/Entries/${i}"|jq '.Created,.Severity,.Message'|paste - - -|tr -s '[:space:]'
+done|while read line
+do
+echo "${node}:${timestamp},${line}"
+done
+}
+
+(
+for node in ${nodes[*]}; do
+  nvswitch_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  mon $node $nvswitch_bmc_ip &
+done
+wait
+) | sort -k1 -t ','
