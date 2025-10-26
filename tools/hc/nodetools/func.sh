@@ -197,3 +197,7 @@ check_ipmi(){
   curl -k -s --user "${bmc_username}:${bmc_password}" \
   https://${bmc_ip}/redfish/v1/Managers/BMC_0/NetworkProtocol | jq '.IPMI'
 }
+
+get_serial_number(){
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0|jq -r '.Id,.SerialNumber'|paste - -
+}
