@@ -201,3 +201,9 @@ check_ipmi(){
 get_serial_number(){
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0|jq -r '.Id,.SerialNumber'|paste - -
 }
+
+get_task_status(){
+curl -k -s --user "${bmc_username}:${bmc_password}" https://${bmc_ip}/redfish/v1/TaskService/Tasks|jq -r '.Members[]."@odata.id"'|while read i; do
+curl -k -s --user "${bmc_username}:${bmc_password}" https://${bmc_ip}${i}|jq -r '[.Id,.Description,.StartTime,.EndTime,.TaskState]|@tsv'
+done
+}
