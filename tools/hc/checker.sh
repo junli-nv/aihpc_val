@@ -16,8 +16,8 @@ memory_expected_size_gb_per_socket=480
 
 check_gpu=1
 gpu_expected_count=4
-gpu_expected_memory_size_gb=32
 check_nvlink=1
+nvlink_expected_count=72
 check_imex=1
 check_cuda=1
 
@@ -211,8 +211,8 @@ if [ ${check_gpu} -ne 0 ]; then
 fi
 
 if [ ${check_nvlink} -ne 0 ]; then
-  if [ $(nvidia-smi nvlink -s|grep '5[0-9].* GB/s'|wc -l) -ne 72 ]; then
-    msg='ERROR: 72 GPU NVLINKs are not fully connected'
+  if [ $(nvidia-smi nvlink -s|grep '5[0-9].* GB/s'|wc -l) -ne ${nvlink_expected_count} ]; then
+    msg="ERROR: ${nvlink_expected_count} GPU NVLINKs are not fully connected"
     echo $msg
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
