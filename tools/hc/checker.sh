@@ -303,6 +303,20 @@ fi
 
 if [ ${check_spx} -ne 0 ]; then
 ## SPX
+  ret=($(
+  for dev in /sys/class/infiniband/mlx5_*; do
+    roce_adp_retrans=$(</sys/class/infiniband/$(basename ${dev})/ports/1/hw_counters/roce_adp_retrans)
+    if [[ ${roce_adp_retrans} -ne 0 ]]; then
+      echo $(basename ${dev}):roce_adp_retrans=${roce_adp_retrans}
+    fi
+  done
+  ))
+  if [ ${#ret[*]} -ne 0 ]; then
+    msg="WARNING: SPX RoCE ADP retransmissions: ${ret[*]}"
+    echo $msg
+    reason="${reason} ${msg}"
+    global_status=$[global_status+1]
+  fi
 fi
 
 if [ ${check_nfs} -ne 0 ]; then
