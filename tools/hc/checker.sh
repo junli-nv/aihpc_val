@@ -123,7 +123,7 @@ if [ $extra_check -ne 0 ]; then
     fi
   fi
   ##Enroot disk check
-  enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.*/)
+  enroot_runtime_path=$(grep ENROOT_RUNTIME_PATH /etc/enroot/enroot.conf|grep -o /.\*/)
   if [ ! -d $enroot_runtime_path ]; then
     enroot_runtime_path=$(df -Th|grep '/dev/md'|awk '{print $NF}'|head -n1)
     if [ "X${enroot_runtime_path}" == "X" ]; then
