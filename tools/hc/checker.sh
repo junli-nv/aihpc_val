@@ -86,6 +86,11 @@ if [ $extra_check -ne 0 ]; then
       msg='ERROR: NV_ERR_INVALID_STATE shown in dmesg'
       echo $msg
   fi
+  ##NV_ERR_GENERIC
+  if [ $(dmesg --since "${dmesg_hours_to_look_back} hour ago" | grep NV_ERR_GENERIC|wc -l) -ne 0 ]; then
+      msg='ERROR: NV_ERR_GENERIC shown in dmesg'
+      echo $msg
+  fi
   ## Hardware Error
   if [ $(dmesg --since "${dmesg_hours_to_look_back} hour ago" | grep 'Hardware Error'|wc -l) -ne 0 ]; then
       msg='ERROR: Hardware Error shown in dmesg'
