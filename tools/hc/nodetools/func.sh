@@ -104,6 +104,10 @@ curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetrySe
 done
 }
 
+query_gpu_uuid_sn(){
+curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/HGX_Baseboard_0/Processors|jq -r '.Members[]."@odata.id"'|grep GPU_|while read i; do echo ${i##*/} $(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq '.UUID,.SerialNumber,.PartNumber'|paste -s -d' '); done
+}
+
 query_firmware(){
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/UpdateService/FirmwareInventory|jq '.Members[]."@odata.id"'|tr -d '"'|while read i; do
   curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq -r '[.Id,.Version]|@tsv'|column -t
