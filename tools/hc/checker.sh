@@ -273,7 +273,7 @@ if [ ${check_ib} -ne 0 ]; then
     #reason="${reason} ${msg}"
     #global_status=$[global_status+1]
   fi
-  active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null); [ ! -z $hca ] && grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &>/  dev/null && echo ${hca}:1;done))
+  active_hcas=($(lspci -D|grep 'Infiniband controller'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null); [ ! -z $hca ] && grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &> /dev/null && echo ${hca}:1;done))
   if [ ${#active_hcas[*]} -ne ${ib_expected_count} ]; then
     msg="WARNING: Active HCA number is not ${ib_expected_count}" # $(echo ${active_hcas[*]}|tr ' ' ',')
     echo $msg
@@ -363,6 +363,7 @@ fi
 
 ##
 #exit ${global_status}
+set +x
 source /etc/profile
 module load slurm
 if [ ${dry_run} -ne 1 ]; then
