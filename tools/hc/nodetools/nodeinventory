@@ -12,7 +12,7 @@ if [ -z $nodelist ]; then
 fi
 
 # nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
-nodes=($(python3 ${topdir}/python-hostlist/hostlist -e ${nodelist}))
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 
 timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
 
