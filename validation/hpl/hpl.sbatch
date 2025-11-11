@@ -83,7 +83,7 @@ mpirun --allow-run-as-root \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
 \
-  bash ${nv_hpc_dir}hpl-linux-aarch64-gpu/hpl.sh \
+  bash ${nv_hpc_dir}/hpl-linux-aarch64-gpu/hpl.sh \
     --no-multinode \
     --gpu-affinity 0:1:2:3 \
     --cpu-affinity 0-35:36-71:72-107:108-143 \
