@@ -150,6 +150,22 @@ if [ $extra_check -ne 0 ]; then
     msg="WARN: GPU ECC: $(echo ${ret[*]})"
     echo $msg
   fi
+  ##GPU Clocks
+  ret=($(nvidia-smi --format=csv,noheader,nounits --query-gpu clocks.sm,clocks.max.sm|tr -d ','|sort -n -k 1|head -n 1))
+  if [ ${ret[0]} -ne ${ret[1]} ]; then
+    msg="WARN: GPU sm clock hasn't been fixed to max"
+    echo $msg
+  fi
+  ret=($(nvidia-smi --format=csv,noheader,nounits --query-gpu clocks.mem,clocks.max.mem|tr -d ','|sort -n -k 1|head -n 1))
+  if [ ${ret[0]} -ne ${ret[1]} ]; then
+    msg="WARN: GPU mem clock hasn't been fixed to max"
+    echo $msg
+  fi
+  ret=$(nvidia-smi --format=csv,noheader,nounits --query-gpu pstate|tr -d 'P'|awk 'BEGIN{sum=0}{sum+=$1}END{print sum}')
+  if [ $ret -ne 0 ]; then
+    msg="WARN: GPUs are not all in P0 state"
+    echo $msg
+  fi
 fi
 
 if [ ${check_cpu} -ne 0 ]; then
