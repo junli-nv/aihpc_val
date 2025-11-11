@@ -27,6 +27,8 @@ fi
 set -x
 ldd `which all_reduce_perf`
 
+nic=enP5p9s0
+#nic=enP6p3s0f0np0
 #ulimit -s 8192 -> workaround segment fault start with 2.27.x 
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
@@ -45,10 +47,10 @@ mpirun --allow-run-as-root \
   -x NCCL_IB_DISABLE=1 \
   -x UCX_TLS=tcp \
 \
-  --mca btl_tcp_if_include enP6p3s0f0np0 \
-  --mca oob_tcp_if_include enP6p3s0f0np0 \
-  -x NCCL_SOCKET_IFNAME=enP6p3s0f0np0 \
-  -x UCX_NET_DEVICES=enP6p3s0f0np0 \
+  --mca btl_tcp_if_include ${nic} \
+  --mca oob_tcp_if_include ${nic} \
+  -x NCCL_SOCKET_IFNAME=${nic} \
+  -x UCX_NET_DEVICES=${nic} \
 \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
