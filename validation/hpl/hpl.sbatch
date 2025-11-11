@@ -18,8 +18,13 @@ source /home/cmsupport/workspace/cuda/env.sh
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
-cd ${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
-source hpc-benchmarks-gpu-env.sh
+## Workaround (Segmentation fault: address not mapped to object at address 0xffffff7fffc0) issue
+#export NCCL_PATH=${topdir}/nccl
+#export LD_LIBRARY_PATH=${NCCL_PATH}/bins:$LD_LIBRARY_PATH
+#export PATH=${NCCL_PATH}/bins:$PATH
+
+nv_hpc_dir=${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
+source ${nv_hpc_dir}/hpc-benchmarks-gpu-env.sh
 
 if [ ${#hosts[*]} -gt 1 ]; then
   export NCCL_MNNVL_ENABLE=1
@@ -38,10 +43,11 @@ _E_
 echo "INFO: Clean work done"
 
 #eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
-eth_nic=enP6p3s0f0np0
+#eth_nic=enP6p3s0f0np0
+eth_nic=enP5p9s0
 
 set -x
-ldd hpl-linux-aarch64-gpu/xhpl
+ldd ${nv_hpc_dir}/hpl-linux-aarch64-gpu/xhpl
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
   --map-by ppr:2:socket:PE=36 \
@@ -77,10 +83,10 @@ mpirun --allow-run-as-root \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
 \
-  bash hpl-linux-aarch64-gpu/hpl.sh \
+  bash ${nv_hpc_dir}hpl-linux-aarch64-gpu/hpl.sh \
     --no-multinode \
     --gpu-affinity 0:1:2:3 \
     --cpu-affinity 0-35:36-71:72-107:108-143 \
     --mem-affinity 0:0:1:1 \
-    --dat ${topdir}/hpl/hpldat/HPL-GB200-${#hosts[*]}N.dat
+    --dat ./hpldat/HPL-GB200-${#hosts[*]}N.dat
 set +x
