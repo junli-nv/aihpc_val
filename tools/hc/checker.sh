@@ -335,8 +335,26 @@ if [ ${check_spx} -ne 0 ]; then
   if [ ${#ret[*]} -ne 0 ]; then
     msg="WARNING: SPX RoCE ADP retransmissions: ${ret[*]}"
     echo $msg
+  fi
+  active_hcas=($(lspci -D|grep 'Ethernet controller:.*Mellanox'|awk '{print $1}'|while read i; do hca=$(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null); [ ! -z $hca ] && grep ACTIVE /sys/class/infiniband/${hca}/ports/1/state &> /dev/null && echo ${hca}:1;done))
+  if [ ${#active_hcas[*]} -ne $(lspci -D|grep 'Ethernet controller:.*Mellanox'|wc -l) ]; then
+    msg="WARNING: Active HCA number is not $(lspci -D|grep 'Ethernet controller:.*Mellanox'|wc -l)"
+    echo $msg
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
+  fi
+  hcas=($(lspci -D|grep 'Ethernet controller:.*Mellanox'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null);done))
+  ret=($(
+  for dev in ${hcas[*]}; do
+    link_downed=$(</sys/class/infiniband/${dev}/ports/1/counters/link_downed)
+    symbol_error=$(</sys/class/infiniband/${dev}/ports/1/counters/symbol_error)
+    if [[ ${link_downed} -ne 0 || ${symbol_error} -ne 0 ]]; then
+      echo ${dev}:link_downed=${link_downed},symbol_error=${symbol_error}
+    fi
+  done
+  ))
+  if [ ${#ret[*]} -ne 0 ]; then
+    echo "WARNING: ${ret[*]}"
   fi
 fi
 
