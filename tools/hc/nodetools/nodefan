@@ -20,5 +20,6 @@ export bmc_ip
 case ${action} in
   auto) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x73 0 ;;
   max) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x74 100 ;;
-  *) echo "${bmc_ip}: $(ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sdr|grep RPM|awk '{print $3}'|paste -s -d ' ')"
+  #*) echo "${bmc_ip}: $(ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sdr|grep RPM|awk '{print $3}'|paste -s -d ' ')";;
+  *) echo "${bmc_ip}: $(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/PlatformEnvironmentMetrics_0|jq -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | grep FAN | while read a b; do echo ${b%%\.*}; done|paste -s -d',')";;
 esac
