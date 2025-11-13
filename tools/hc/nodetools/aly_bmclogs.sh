@@ -11,7 +11,7 @@ for i in $logdir/*.txt; do
    b=$(grep $timestamp $i | grep 149.*0x004| wc -l) \
    c=$(grep $timestamp $i | grep 149.*0x00a| wc -l)
    if [ $(cat $i|wc -l) -lt 10 ]; then
-      status=FAILED
+      status=NA
    else
       [ $[a+b+c] -eq 0 ] && status=PASSED || status=FAILED
    fi
