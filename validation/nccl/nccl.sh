@@ -7,33 +7,24 @@
 #SBATCH -N 30
 #SBATCH -w s03-p1-dgx-01-c[02-03,05-12,14-18],s04-p1-dgx-02-c[01-09,11-13,16-18]
 
-timeout 100 bash /home/cmsupport/workspace/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
-module load slurm
-
-cd ${SLURM_SUBMIT_DIR}
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-#source /etc/profile
-#module load shared
-#module load cuda12.8/toolkit/12.8.1
-source /home/cmsupport/workspace/cuda/env.sh
-
-export LD_LIBRARY_PATH=${topdir}/nccl/bins:$LD_LIBRARY_PATH
-export PATH=${topdir}/nccl/bins:$PATH
-cd ${topdir}/nccl
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+timeout 100 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
 set -x
-ldd ${topdir}/nccl/bins/all_reduce_perf
+ldd `which all_reduce_perf`
+nic=bond0
+#nic=enP5p9s0
+#nic=enP6p3s0f0np0
+UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1"
+NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5"
 
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
-  --mca btl_tcp_if_include enP6p3s0f0np0 \
-  --mca oob_tcp_if_include enP6p3s0f0np0 \
+  --mca btl_tcp_if_include ${nic} \
+  --mca oob_tcp_if_include ${nic} \
   --map-by ppr:2:socket:PE=36 \
   --display-map --display-topo --report-bindings \
   -x PATH=$PATH \
@@ -58,11 +49,11 @@ mpirun --allow-run-as-root \
 \
   -x SLURM_CPU_BIND=none \
   -x OMPI_MCA_pml=ucx \
-  -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
+  -x UCX_NET_DEVICES="${UCX_NET_DEVICES}" \
   -x UCX_TLS=rc_x,cuda \
   -x OMPI_MCA_btl=^openib,smcuda \
-  -x NCCL_SOCKET_IFNAME=enP6p3s0f0np0 \
-  -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5" \
+  -x NCCL_SOCKET_IFNAME=${nic} \
+  -x NCCL_IB_HCA="${NCCL_IB_HCA}" \
 \
   -x NCCL_IB_QPS_PER_CONNECTION=2 \
   -x NCCL_IB_SPLIT_DATA_ON_QPS=0 \
@@ -73,5 +64,5 @@ mpirun --allow-run-as-root \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
   bash ${SLURM_SUBMIT_DIR}/wrapper.sh \
-  ${topdir}/nccl/bins/all_reduce_perf -b 16G -f 2 -g 1 -e 16G --iters 50
+  `which all_reduce_perf` -b 16G -f 2 -g 1 -e 16G --iters 50
 set +x

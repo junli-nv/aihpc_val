@@ -6,9 +6,9 @@
 #SBATCH --gpus-per-node=4
 #SBATCH -N 1
 
-cd ${SLURM_SUBMIT_DIR}
-source /home/cmsupport/workspace/aihpc_val/envs/global_env.sh
-timeout 60 bash /home/cmsupport/workspace/aihpc_val/tools/hc/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+timeout 100 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
@@ -41,5 +41,5 @@ mpirun --allow-run-as-root \
   -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
-  ${topdir}/nccl/bins/all_reduce_perf -b 16G -f 2 -g 1 -e 16G --iters 100
+  `which all_reduce_perf` -b 16G -f 2 -g 1 -e 16G --iters 100
 set +x

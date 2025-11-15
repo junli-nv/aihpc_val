@@ -6,24 +6,14 @@
 #SBATCH --gpus-per-node=4
 #SBATCH -N 1
 
-#timeout 60 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-#source /etc/profile
-#module load shared
-#module load cuda12.8/toolkit/12.8.1
-source /home/cmsupport/workspace/cuda/env.sh
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+#timeout 60 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
-cd ${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
-source hpc-benchmarks-gpu-env.sh
-
 set -x
-ldd hpl-linux-aarch64-gpu/xhpl
+ldd ${HPL_HOME}/hpl-linux-aarch64-gpu/xhpl
 export HPL_TEST_SYSTEM=0
 export HPL_CUSOLVER_MP_TESTS=0
 export HPL_USE_NVSHMEM=1
@@ -65,31 +55,31 @@ sleep 3
 nvidia-smi --format=csv --query-gpu gpu_bus_id,gpu_name,compute_mode,ecc.mode.current,clocks.gr,clocks.max.gr,clocks.sm,clocks.max.sm,clocks.max.mem,clocks.video,clocks.applications.gr,clocks.applications.mem,clocks.default_applications.gr,clocks.default_applications.mem,pstate,power.default_limit
 
 echo "GPU=0"
-bash hpl-linux-aarch64-gpu/hpl.sh \
+bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
   --no-multinode \
   --gpu-affinity 0 \
   --cpu-affinity 0-35 \
   --mem-affinity 0 \
-  --dat ${topdir}/hpl/hpldat/HPL-GB200-1GPU.dat
+  --dat ./hpldat/HPL-GB200-1GPU.dat
 echo "GPU=1"
-bash hpl-linux-aarch64-gpu/hpl.sh \
+bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
   --no-multinode \
   --gpu-affinity 1 \
   --cpu-affinity 36-71 \
   --mem-affinity 0 \
-  --dat ${topdir}/hpl/hpldat/HPL-GB200-1GPU.dat
+  --dat ./hpldat/HPL-GB200-1GPU.dat
 echo "GPU=2"
-bash hpl-linux-aarch64-gpu/hpl.sh \
+bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
   --no-multinode \
   --gpu-affinity 2 \
   --cpu-affinity 72-107 \
   --mem-affinity 1 \
-  --dat ${topdir}/hpl/hpldat/HPL-GB200-1GPU.dat
+  --dat ./hpldat/HPL-GB200-1GPU.dat
 echo "GPU=3"
-bash hpl-linux-aarch64-gpu/hpl.sh \
+bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
   --no-multinode \
   --gpu-affinity 3 \
   --cpu-affinity 108-143 \
   --mem-affinity 1 \
-  --dat ${topdir}/hpl/hpldat/HPL-GB200-1GPU.dat
+  --dat ./hpldat/HPL-GB200-1GPU.dat
 set +x

@@ -5,22 +5,12 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-timeout 90 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-#source /etc/profile
-#module load shared
-#module load cuda12.8/toolkit/12.8.1
-source /home/cmsupport/workspace/cuda/env.sh
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+timeout 60 bash ../../tools/hc/sysinfo.sh 2>&1
 
 echo "NODELIST=${SLURM_JOB_NODELIST}"
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
-
-cd ${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
-source hpc-benchmarks-gpu-env.sh
 
 #if [ ${#hosts[*]} -gt 1 ]; then
 #  export NCCL_MNNVL_ENABLE=1
@@ -54,8 +44,13 @@ _E_
 echo "INFO: Clean work done"
 
 #eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
-eth_nic=enP6p3s0f0np0
+#eth_nic=enP6p3s0f0np0
 #eth_nic=ibp3s0
+eth_nic=bond0
+
+NVSHMEM_HCA_LIST="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1"
+UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1"
+NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5"
 
 #\
 #  -x NCCL_IB_QPS_PER_CONNECTION=2 \
@@ -63,7 +58,7 @@ eth_nic=enP6p3s0f0np0
 #  -x UCX_TLS=rc_x,cuda \
 
 set -x
-ldd hpl-linux-aarch64-gpu/xhpl
+ldd ${HPL_HOME}/hpl-linux-aarch64-gpu/xhpl
 # NCCL_DEBUG_SUBSYS=ALL \
   #--display-map --display-topo --report-bindings \
 mpirun --allow-run-as-root \
@@ -84,7 +79,7 @@ mpirun --allow-run-as-root \
 \
   -x HPL_USE_NVSHMEM=${HPL_USE_NVSHMEM} \
   -x NVSHMEM_DISABLE_NVLS=1 \
-  -x NVSHMEM_HCA_LIST="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
+  -x NVSHMEM_HCA_LIST="${NVSHMEM_HCA_LIST}" \
   -x NVSHMEM_ENABLE_NIC_PE_MAPPING=1 \
 \
   -x NCCL_NVLS_ENABLE=0 \
@@ -98,10 +93,10 @@ mpirun --allow-run-as-root \
 \
   -x SLURM_CPU_BIND=none \
   -x OMPI_MCA_pml=ucx \
-  -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_4:1,mlx5_5:1" \
+  -x UCX_NET_DEVICES="${UCX_NET_DEVICES}" \
   -x UCX_TLS=rc \
   -x OMPI_MCA_btl=^openib,smcuda \
-  -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_4,mlx5_5" \
+  -x NCCL_IB_HCA="${NCCL_IB_HCA}" \
 \
   -x NCCL_SOCKET_IFNAME=${eth_nic} \
   --mca btl_tcp_if_include ${eth_nic} \
@@ -113,9 +108,9 @@ mpirun --allow-run-as-root \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
 \
-  bash hpl-linux-aarch64-gpu/hpl.sh \
+  bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
     --gpu-affinity 0:1:2:3 \
     --cpu-affinity 0-35:36-71:72-107:108-143 \
     --mem-affinity 0:0:1:1 \
-    --dat ${topdir}/hpl/hpldat/HPL-GB200-${#hosts[*]}N.dat
+    --dat ./hpldat/HPL-GB200-${#hosts[*]}N.dat
 set +x

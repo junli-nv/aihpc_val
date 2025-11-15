@@ -5,16 +5,9 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-timeout 60 bash /home/cmsupport/workspace/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-source /home/cmsupport/workspace/cuda/env.sh
-export LD_LIBRARY_PATH=${topdir}/nccl/bins:$LD_LIBRARY_PATH
-export PATH=${topdir}/nccl/bins:$PATH
-cd ${topdir}/nccl
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+timeout 60 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
@@ -27,9 +20,10 @@ fi
 set -x
 ldd `which all_reduce_perf`
 
-nic=enP5p9s0
+nic=bond0
+#nic=enP5p9s0
 #nic=enP6p3s0f0np0
-#ulimit -s 8192 -> workaround segment fault start with 2.27.x 
+
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
   --map-by ppr:2:socket:PE=36 \
@@ -54,5 +48,5 @@ mpirun --allow-run-as-root \
 \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
-  bash -c "ulimit -s 8192; all_reduce_perf -b 8 -f 2 -g 1 -e 16G -R 0"
+  bash -c "ulimit -s 8192; `which all_reduce_perf` -b 8 -f 2 -g 1 -e 16G -R 0"
 set +x

@@ -5,25 +5,9 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-#timeout 100 bash /home/cmsupport/workspace/sysinfo.sh ${SLURM_JOB_NODELIST} 2>&1
-module load slurm
-
-cd ${SLURM_SUBMIT_DIR}
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-#source /etc/profile
-#module load shared
-#module load cuda12.8/toolkit/12.8.1
-export CUDA_HOME=/home/cmsupport/workspace/cuda
-export PATH=${CUDA_HOME}/bin:$PATH
-export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
-
-export LD_LIBRARY_PATH=${topdir}/nccl/bins:$LD_LIBRARY_PATH
-export PATH=${topdir}/nccl/bins:$PATH
-cd ${topdir}/nccl
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+#timeout 100 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
 
@@ -42,10 +26,10 @@ echo "INFO: cleaning work done"
 ##
 unset tests
 declare -A tests
-tests[all_reduce_perf]="${topdir}/nccl/bins/all_reduce_perf -dfloat -b8 -e16G -f2 -g1"
-tests[all_gather_perf]="${topdir}/nccl/bins/all_gather_perf -dfloat -b8 -e16G -f2 -g1"
-tests[reduce_scatter_perf]="${topdir}/nccl/bins/reduce_scatter_perf -dfloat -b8 -e16G -f2 -g1"
-tests[alltoall_perf]="${topdir}/nccl/bins/alltoall_perf -duint8 -b8 -e8G -f2 -g1"
+tests[all_reduce_perf]="`which all_reduce_perf` -dfloat -b8 -e16G -f2 -g1"
+tests[all_gather_perf]="`which all_gather_perf` -dfloat -b8 -e16G -f2 -g1"
+tests[reduce_scatter_perf]="`which reduce_scatter_perf` -dfloat -b8 -e16G -f2 -g1"
+tests[alltoall_perf]="`which alltoall_perf` -duint8 -b8 -e8G -f2 -g1"
 #
 HOSTS_LIST=$(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',')
 export NCCL_IB_TIMEOUT=25

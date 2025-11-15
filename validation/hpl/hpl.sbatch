@@ -5,26 +5,11 @@
 #SBATCH --cpus-per-task=36
 #SBATCH --gpus-per-node=4
 
-timeout 60 bash /home/cmsupport/workspace/sysinfo.sh 2>&1
-
-topdir=/home/cmsupport/workspace
-
-source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
-hpcx_load
-#source /etc/profile
-#module load shared
-#module load cuda12.8/toolkit/12.8.1
-source /home/cmsupport/workspace/cuda/env.sh
+cd $SLURM_SUBMIT_DIR
+source ../envs/global_env.sh
+timeout 60 bash ../../tools/hc/sysinfo.sh 2>&1
 
 hosts=($(scontrol show hostname $SLURM_JOB_NODELIST))
-
-## Workaround (Segmentation fault: address not mapped to object at address 0xffffff7fffc0) issue
-#export NCCL_PATH=${topdir}/nccl
-#export LD_LIBRARY_PATH=${NCCL_PATH}/bins:$LD_LIBRARY_PATH
-#export PATH=${NCCL_PATH}/bins:$PATH
-
-nv_hpc_dir=${topdir}/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive
-source ${nv_hpc_dir}/hpc-benchmarks-gpu-env.sh
 
 if [ ${#hosts[*]} -gt 1 ]; then
   export NCCL_MNNVL_ENABLE=1
@@ -44,10 +29,11 @@ echo "INFO: Clean work done"
 
 #eth_nic=$(/usr/sbin/ip r sh|grep default|awk '{print $5}')
 #eth_nic=enP6p3s0f0np0
-eth_nic=enP5p9s0
+#eth_nic=enP5p9s0
+eth_nic=bond0
 
 set -x
-ldd ${nv_hpc_dir}/hpl-linux-aarch64-gpu/xhpl
+ldd ${HPL_HOME}/hpl-linux-aarch64-gpu/xhpl
 mpirun --allow-run-as-root \
   --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
   --map-by ppr:2:socket:PE=36 \
@@ -83,7 +69,7 @@ mpirun --allow-run-as-root \
   -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
   -np $[4*${#hosts[*]}] \
 \
-  bash ${nv_hpc_dir}/hpl-linux-aarch64-gpu/hpl.sh \
+  bash ${HPL_HOME}/hpl-linux-aarch64-gpu/hpl.sh \
     --no-multinode \
     --gpu-affinity 0:1:2:3 \
     --cpu-affinity 0-35:36-71:72-107:108-143 \
