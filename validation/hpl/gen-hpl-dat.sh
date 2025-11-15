@@ -72,10 +72,9 @@ ${Q}         Qs
 EOF
 }
 
-topdir=/home/cmsupport/workspace/
-mkdir -p ${topdir}/hpl/hpldat
+mkdir -p ./hpldat
 for i in 1 2 4 8 16 18 32 64 128 256 512 #224 #192 210 #100 #64 #72 #90 #320 400 405 #64 128 256 304 512 #80 #1 2 4 8 16 18 32 36
 do
-  main_hpl $i ${topdir}/hpl/hpldat/HPL-GB200-${i}N.dat
+  main_hpl $i ./hpldat/HPL-GB200-${i}N.dat
 done
 
