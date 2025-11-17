@@ -83,7 +83,7 @@ EOF
 
 echo -e "\n########INFO: Check IMEX connection status(Expected: Node be in READY, all nodes connected and Domain UP)"
 pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
-nvidia-imex-ctl -N|sed '1,11d'
+nvidia-imex-ctl -N|awk '/Nodes:/,/Domain State:/{print $0}'|sed -e 's:\*: :g' -e 's:-: :g'
 EOF
 
 
