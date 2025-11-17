@@ -343,6 +343,7 @@ if [ ${check_spx} -ne 0 ]; then
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
   fi
+  mst start &>/dev/null;
   hcas=($(lspci -D|grep -E '(Infiniband|Ethernet) controller:.*Mellanox'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null);done))
   ret=($(
   for dev in ${hcas[*]}; do
