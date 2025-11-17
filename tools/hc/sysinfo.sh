@@ -49,6 +49,11 @@ pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ibstatus|grep -E 'Infiniband|state:'|paste - - -
 EOF
 
+echo -e "\n########INFO: Check IB Link Down status(Expected: 0)"
+pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
+for i in /sys/class/infiniband/*; do echo ${i##*/}=$(mlxlink -d ${i##*/} -c|grep 'Link Down Counter'|awk '{print $NF}'); done|paste -s -d ','
+EOF
+
 echo -e "\n########INFO: Check IFace device status(Expected: all nodes use the same interface connect to default gatewawy)"
 pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ip r sh|grep default|grep -o dev.*|cut -f2 -d' '
