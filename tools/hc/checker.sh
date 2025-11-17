@@ -343,7 +343,7 @@ if [ ${check_spx} -ne 0 ]; then
     reason="${reason} ${msg}"
     global_status=$[global_status+1]
   fi
-  hcas=($(lspci -D|grep 'Ethernet controller:.*Mellanox'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null);done))
+  hcas=($(lspci -D|grep -E '(Infiniband|Ethernet) controller:.*Mellanox'|awk '{print $1}'|while read i; do echo $(basename $(ls -l /sys/class/infiniband|grep -o ${i}.*) 2>/dev/null);done))
   ret=($(
   for dev in ${hcas[*]}; do
     #link_downed=$(</sys/class/infiniband/${dev}/ports/1/counters/link_downed)
@@ -351,9 +351,10 @@ if [ ${check_spx} -ne 0 ]; then
     #if [[ ${link_downed} -ne 0 || ${symbol_error} -ne 0 ]]; then
     #  echo ${dev}:link_downed=${link_downed},symbol_error=${symbol_error}
     #fi
-    tmp_c=($(mlxlink -d ${dev} -c|grep -E 'Effective Physical Errors|Link Down Counter'|awk '{print $NF}'))
+    tmp_c=($(mlxlink -d ${dev} -c|grep -E 'Effective Physical Errors|Link Down Counter'|awk '{print $NF}'|sed 's:N/A:0:g'))
     link_downed=${tmp_c[1]}
     effective_physical_errors=${tmp_c[0]}
+    #echo ${dev}:link_downed=${link_downed},effective_physical_errors=${effective_physical_errors}
     if [[ ${link_downed} -ne 0 || ${effective_physical_errors} -ne 0 ]]; then
       echo ${dev}:link_downed=${link_downed},effective_physical_errors=${effective_physical_errors}
     fi
