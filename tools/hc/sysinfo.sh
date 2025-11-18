@@ -44,7 +44,7 @@ pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 nvidia-smi -q | grep -E 'Bus Id|CliqueId|ClusterUUID'
 EOF
 
-echo -e "\n########INFO: Check IB devices status(Expected: Only N/S eth wired, E/W IB disconnected)"
+echo -e "\n########INFO: Check IB devices status(Expected: All up and active)"
 pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ibstatus|grep -E 'Infiniband|state:'|paste - - -
 EOF
