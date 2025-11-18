@@ -32,7 +32,7 @@ srun -N 1 --reservation=junli_val \
 git clone https://github.com/NVIDIA/nccl.git
 cd nccl/
 git checkout v2.28.3-1
-make -j src.build
+make -j src.build NVCC_GENCODE="-gencode=arch=compute_100,code=sm_100"
 rm -f /usr/lib/aarch64-linux-gnu/libnccl*
 cp build/lib/libnccl.so.2.28.3 /usr/lib/aarch64-linux-gnu/libnccl.so.2.28.3
 cp build/lib/libnccl_static.a /usr/lib/aarch64-linux-gnu/libnccl_static.a
@@ -45,7 +45,7 @@ cp ./build/include/nccl.h /usr/include/nccl.h
 cp ./build/bin/ncclras /usr/bin/ncclras
 git clone https://github.com/NVIDIA/nccl-tests.git
 cd nccl-tests
-make -j MPI=1 NAME_SUFFIX=_mpi MPI_HOME=/usr/local/mpi NCCL_HOME=$PWD/../build
+make -j MPI=1 NAME_SUFFIX=_mpi MPI_HOME=/usr/local/mpi NVCC_GENCODE="-gencode=arch=compute_100,code=sm_100" NCCL_HOME=$PWD/../build
 rm -f /usr/local/bin/*_perf*
 cp build/*_mpi /usr/local/bin/
 ls -lh /usr/local/bin/*_perf*
@@ -58,9 +58,8 @@ rm -rf ../build/
 # apt-get update && apt install -y build-essential devscripts debhelper fakeroot
 # make -j src.build NVCC_GENCODE="-gencode=arch=compute_100,code=sm_100"
 # make pkg.debian.build
-# apt-get install -y \
-#   ./build/pkg/deb/libnccl2_2.28.3-1+cuda12.9_arm64.deb \
-#   ./build/pkg/deb/libnccl-dev_2.28.3-1+cuda12.9_arm64.deb
+# apt install ./build/pkg/deb/*.deb
+# dpkg -l|grep nccl
 # rm -rf ./build/
 
 history -c
