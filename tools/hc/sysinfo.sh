@@ -49,9 +49,9 @@ pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 ibstatus|grep -E 'Infiniband|state:'|paste - - -
 EOF
 
-echo -e "\n########INFO: Check IB Link Down status(Expected: 0)"
+echo -e "\n########INFO: Check IB Link Down status(Expected: No issue found)"
 pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
-mst start &>/dev/null; for i in /sys/class/infiniband/*; do echo ${i##*/}=$(mlxlink -d ${i##*/} -c|grep 'Link Down Counter'|awk '{print $NF}'); done|paste -s -d ','
+ls -l /sys/class/infiniband|grep infiniband|awk -F'/' '{print $(NF-2),$NF}'|while read bdf dev; do ret=$(mlxlink -d $bdf -c|grep Recommendation|cut -f2- -d ':'|grep -v 'No issue was observed'||true); [ "X$ret" != "X" ] && echo "$dev:${ret}"; done|paste -s -d','
 EOF
 
 echo -e "\n########INFO: Check IFace device status(Expected: all nodes use the same interface connect to default gatewawy)"
@@ -91,4 +91,7 @@ pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 nvidia-imex-ctl -N|awk '/Nodes:/,/Domain State:/{print $0}'|sed -e 's:\*: :g' -e 's:-: :g'
 EOF
 
-
+echo -e "\n########INFO: Check dmesg(Expected: No NV_ERR_*)"
+pdsh -f 64 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
+dmesg --since "4 hour ago"|grep -o  NV_ERR_[^\]]*|sort|uniq
+EOF
