@@ -103,7 +103,7 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
   fi
   ## ipmi i2c errors
-  if [ $(dmesg --since "${dmesg_hours_to_look_back} hour ago" | grep 'ipmi_ssif.*i2c-'|wc -l) -gt 10 ]; then
+  if [ $(dmesg --since "1 hour ago" | grep 'ipmi_ssif.*i2c-'|wc -l) -gt 10 ]; then
       msg='WARN: ipmi_ssif i2c errors shown in dmesg'
       echo $msg
   fi 
