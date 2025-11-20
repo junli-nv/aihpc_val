@@ -96,7 +96,12 @@ pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 nvidia-imex-ctl -N|awk '/Nodes:/,/Domain State:/{print $0}'|sed -e 's:\*: :g' -e 's:-: :g'
 EOF
 
-echo -e "\n########INFO: Check dmesg(Expected: No NV_ERR_*)"
+echo -e "\n########INFO: Check dmesg - NV_ERR(Expected: No NV_ERR_*)"
 pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 dmesg --since "4 hour ago"|grep -o  NV_ERR_[^\]]*|sort|uniq
+EOF
+
+echo -e "\n########INFO: Check dmesg - Call trace(Expected: No Call trace*)"
+pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
+dmesg --since "60 min ago"|grep 'Call trace'|wc -l
 EOF
