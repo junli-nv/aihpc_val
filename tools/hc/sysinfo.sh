@@ -10,6 +10,8 @@ module load slurm
 
 hosts=($(scontrol show hostname $NODELIST))
 
+export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no"
+
 echo -e "\n########INFO: Check OS"
 pdsh -t 5 -u 5 -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<< "uname -r; df -Th|grep /cm/node-installer &>/dev/null || echo 'OS is READY'" 2>/dev/null | dshbak -c 
 
