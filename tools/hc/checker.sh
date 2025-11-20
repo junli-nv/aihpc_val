@@ -102,6 +102,11 @@ if [ $extra_check -ne 0 ]; then
       msg='ERROR: knvlinkDiscoverPostRxDetLinks error shown in dmesg'
       echo $msg
   fi
+  ## ipmi i2c errors
+  if [ $(dmesg --since "${dmesg_hours_to_look_back} hour ago" | grep 'ipmi_ssif.*i2c-'|wc -l) -gt 10 ]; then
+      msg='WARN: ipmi_ssif i2c errors shown in dmesg'
+      echo $msg
+  fi 
   ##NVME
   ret=($(
   for i in $(ls -1 /sys/class/nvme); do

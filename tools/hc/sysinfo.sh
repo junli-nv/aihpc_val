@@ -105,3 +105,8 @@ echo -e "\n########INFO: Check dmesg - Call trace(Expected: No Call trace*)"
 pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
 dmesg --since "60 min ago"|grep "Call trace"|wc -l
 EOF
+
+echo -e "\n########INFO: Check dmesg - ipmi_ssif(Expected: No Call trace*)"
+pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF'
+([ $(dmesg|grep "ipmi_ssif.*i2c-"|wc -l) -lt 10 ] && echo "PASS" || echo "FAIL")|grep -v PASS||true
+EOF
