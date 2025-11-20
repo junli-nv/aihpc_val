@@ -103,5 +103,5 @@ EOF
 
 echo -e "\n########INFO: Check dmesg - Call trace(Expected: No Call trace*)"
 pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
-dmesg --since "60 min ago"|grep 'Call trace'|wc -l
+dmesg --since "60 min ago"|grep "Call trace"|wc -l
 EOF
