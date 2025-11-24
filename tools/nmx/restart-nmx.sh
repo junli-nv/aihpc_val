@@ -58,9 +58,9 @@ sshpass -p "${passwd}" /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHost
   ${user}@${nvsw01} bash /tmp/restart_nmx.sh
 
 # Please enable only one NVSW of the rack enable the nmx-controller service**
-# All the left should say "No Data"
+# All the left should say "No Data", if not disable the ones.
 for i in {02..09}; do
-sshpass -p "${passwd}" /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no ${user}@${nvsw01%%-01}-${i} "hostname; nv show cluster app running"
+sshpass -p "${passwd}" /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no ${user}@${nvsw01%%-01}-${i} "hostname; nv set cluster state disabled; nv config apply; nv config save; nv show cluster app running"
 done
 
 # Check the P2P on compute trays again to see whether the P2P is enabled
