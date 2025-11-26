@@ -19,12 +19,12 @@ main(){
   nvswitch_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
   ret=($(
     for dev in MGX_NVSwitch_0 MGX_NVSwitch_1; do
-    curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
-    https://${nvswitch_bmc_ip}/redfish/v1/Chassis/${dev}/Sensors/${dev}_TEMP_0|jq '.Reading'
+      timeout 5 curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
+      https://${nvswitch_bmc_ip}/redfish/v1/Chassis/${dev}/Sensors/${dev}_TEMP_0|jq '.Reading'
     done
   ))
   echo "${node}: ${ret[*]}"
 }
 export -f main
 
-echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}'
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}' | sort
