@@ -1,0 +1,30 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+export hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
+
+main(){
+  node=$1
+  nvswitch_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=($(
+    for dev in MGX_NVSwitch_0 MGX_NVSwitch_1; do
+    curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
+    https://${nvswitch_bmc_ip}/redfish/v1/Chassis/${dev}/Sensors/${dev}_TEMP_0|jq '.Reading'
+    done
+  ))
+  echo "${node}: ${ret[*]}"
+}
+export -f main
+
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}'
