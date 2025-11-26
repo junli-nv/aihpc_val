@@ -3,19 +3,26 @@
 topdir=$(dirname $(realpath $0))
 
 source $topdir/func.sh
-hostlist=$topdir/hosts.list
+export hostlist=$topdir/hosts.list
 
-node=$1
-if [ -z $node ]; then
-  echo "$(basename $0) nodename"
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
   exit 1
 fi
 
 action=$2
 [ -z "${action}" ] && action=status
 
-bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-export bmc_ip
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 
-ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} power ${action}
+main(){
+  node=$1
+  action=$2
+  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(timeout 5 ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} power ${action}||echo 'N/A')
+  echo "$node: $ret"
+}
+export -f main
 
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c "main {} $action"
