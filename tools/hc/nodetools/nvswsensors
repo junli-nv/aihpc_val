@@ -17,11 +17,16 @@ nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 main(){
   node=$1
   nvswitch_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  urls=(
+    /redfish/v1/Chassis/MGX_NVSwitch_0/Sensors/MGX_NVSwitch_0_TEMP_0
+    /redfish/v1/Chassis/MGX_NVSwitch_1/Sensors/MGX_NVSwitch_1_TEMP_0
+    /redfish/v1/Chassis/MGX_BMC_0/Sensors/BMC_TEMP
+  )
   ret=($(
-    for dev in MGX_NVSwitch_0 MGX_NVSwitch_1; do
+    for i in ${urls[@]}; do
       timeout 5 curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
-      https://${nvswitch_bmc_ip}/redfish/v1/Chassis/${dev}/Sensors/${dev}_TEMP_0|jq '.Reading'
-    done
+      https://${nvswitch_bmc_ip}${i}|jq -r '.Id,.Reading'|paste -s -d '='
+    done|paste -s -d ','
   ))
   echo "${node}: ${ret[*]}"
 }
