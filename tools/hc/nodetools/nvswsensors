@@ -24,7 +24,7 @@ main(){
   )
   ret=($(
     for i in ${urls[@]}; do
-      timeout 5 curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
+      timeout 3 curl -s -k -u ${nvswitch_bmc_user}:${nvswitch_bmc_pass}  \
       https://${nvswitch_bmc_ip}${i}|jq -r '.Id,.Reading'|paste -s -d '='
     done|paste -s -d ','
   ))
@@ -32,4 +32,4 @@ main(){
 }
 export -f main
 
-echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}' | sort
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}' #| sort
