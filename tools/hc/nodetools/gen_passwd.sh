@@ -17,3 +17,5 @@ export nvswitch_bmc_pass=JulietBmc@123
 export powershelf_bmc_user=root
 export powershelf_bmc_pass=0penBmc
 EOF
+
+chmod +x passwd.sh
