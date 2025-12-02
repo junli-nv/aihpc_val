@@ -1,0 +1,31 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+export hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
+
+main(){
+  set -x
+  node=$1
+  ret=($(
+  sshpass -p "${nvswitch_os_pass}" \
+  /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no \
+  ${nvswitch_os_user}@${node} "nv show cluster app running; nv show system health | grep status"
+  ))
+  set +x
+  echo "${node}: ${ret[*]}"
+}
+export -f main
+
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}' #| sort
+
