@@ -32,7 +32,7 @@ power_status(){
   powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
   ret=$(
     curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
-     https://${powershelf_bmc_ip}/redfish/v1/Chassis/chassis|jq '.SerialNumber|.PowerState' 
+     https://${powershelf_bmc_ip}/redfish/v1/Chassis/chassis|jq '.SerialNumber,.PowerState' 
   )
   echo "${node}: ${ret}"
 }
