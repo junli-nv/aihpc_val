@@ -1,0 +1,75 @@
+#!/bin/bash
+
+topdir=$(dirname $(realpath $0))
+
+source $topdir/func.sh
+export hostlist=$topdir/hosts.list
+
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
+  exit 1
+fi
+
+# nodes=($(source /etc/profile &>/dev/null; module load slurm; scontrol show hostname ${nodelist}))
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
+
+power_cycle(){
+  node=$1
+  powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(
+    curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
+    -X POST \
+    -d '{"ResetType": "PowerCycle"}' \
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+  )
+  echo "${node}: PowerCycle command sent. msg=${ret}"
+}
+export -f power_cycle
+
+power_status(){
+  node=$1
+  powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(
+    curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
+     https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0|jq '.PowerState' 
+  )
+  echo "${node}: ${ret}"
+}
+export -f power_status
+
+power_off(){
+  node=$1
+  powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(
+    curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
+    -X POST \
+    -d '{"ResetType": "ForceOff"}' \
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+  )
+  echo "${node}: Power ForceOff command sent. msg=${ret}"
+}
+export -f power_off
+
+power_on(){
+  node=$1
+  powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(
+    curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
+    -X POST \
+    -d '{"ResetType": "On"}' \
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+  )
+  echo "${node}: Power On command sent. msg=${ret}"
+}
+export -f power_on
+
+action=$2
+[ -z "${action}" ] && action=status
+
+case $action in
+"cycle") echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'power_cycle {}';;
+"off") echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'power_off {}';;
+"on") echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'power_on {}';;
+"status") echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'power_status {}';;
+esac
