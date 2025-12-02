@@ -10,10 +10,13 @@ export bmc_password=0penBmc
 export nvswitch_os_user=admin
 export nvswitch_os_pass=admin
 
+#cmsh -> device -> nvswitch -> bmcsettings -> get username/password
+#OR
 #cmsh -> category -> nvswitch -> bmcsettings -> get username/password
 export nvswitch_bmc_user=root
 export nvswitch_bmc_pass=JulietBmc@123
 
+#cmsh -> device -> powershelf -> bmcsettings -> get username/password
 export powershelf_bmc_user=root
 export powershelf_bmc_pass=0penBmc
 EOF
