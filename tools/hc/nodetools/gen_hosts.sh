@@ -5,10 +5,10 @@ sw_prefix="nvsw"
 ps_prefix="ps"
 
 cmsh -c 'device; foreach -t PhysicalNode ( get hostname; interfaces; list bmc)' \
-  | grep -E "${node_prefix}-|bmc" | paste - - | awk '{print $1,$4}' | tee hosts.list
+  | grep -E "${node_prefix}|bmc" | paste - - | awk '{print $1,$4}' | tee hosts.list
 
 cmsh -c 'device; foreach -t Switch ( get hostname; interfaces; list bmc)' \
-  | grep -E "${sw_prefix}-|bmc" | paste - - | awk '{print $1,$4}' | tee -a hosts.list
+  | grep -E "${sw_prefix}|bmc" | paste - - | awk '{print $1,$4}' | tee -a hosts.list
 
 cmsh -c 'device; foreach -t PowerShelf ( get hostname; interfaces; list bmc)' \
-  | grep -E "${ps_prefix}-|bmc" | paste - - | awk '{print $1,$4}' | tee -a hosts.list
+  | grep -E "${ps_prefix}|bmc" | paste - - | awk '{print $1,$4}' | tee -a hosts.list
