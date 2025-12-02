@@ -20,7 +20,7 @@ main(){
   ret=($(
   sshpass -p "${nvswitch_os_pass}" \
   timeout 30 /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o CheckHostIP=no \
-  ${nvswitch_os_user}@${node} "nv show cluster app running; nv show system health | grep status" || echo 'ERROR: failed to connect'
+  ${nvswitch_os_user}@${node} "nv show cluster app running|grep -v -e Name -e '---'; nv show system health | grep status" || echo 'ERROR: failed to connect'
   ))
   #set +x
   echo "${node}: ${ret[*]}"
