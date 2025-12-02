@@ -21,7 +21,7 @@ power_cycle(){
     curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
     -X POST \
     -d '{"ResetType": "PowerCycle"}' \
-    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/system/Actions/ComputerSystem.Reset
   )
   echo "${node}: PowerCycle command sent. msg=${ret}"
 }
@@ -32,7 +32,7 @@ power_status(){
   powershelf_bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
   ret=$(
     curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
-     https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0|jq '.PowerState' 
+     https://${powershelf_bmc_ip}/redfish/v1/Systems/system|jq '.PowerState' 
   )
   echo "${node}: ${ret}"
 }
@@ -45,7 +45,7 @@ power_off(){
     curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
     -X POST \
     -d '{"ResetType": "ForceOff"}' \
-    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/system/Actions/ComputerSystem.Reset
   )
   echo "${node}: Power ForceOff command sent. msg=${ret}"
 }
@@ -58,7 +58,7 @@ power_on(){
     curl -s -k -u ${powershelf_bmc_user}:${powershelf_bmc_pass}  \
     -X POST \
     -d '{"ResetType": "On"}' \
-    https://${powershelf_bmc_ip}/redfish/v1/Systems/System_0/Actions/ComputerSystem.Reset
+    https://${powershelf_bmc_ip}/redfish/v1/Systems/system/Actions/ComputerSystem.Reset
   )
   echo "${node}: Power On command sent. msg=${ret}"
 }
