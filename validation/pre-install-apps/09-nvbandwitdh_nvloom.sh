@@ -7,7 +7,7 @@ mkdir -p ${topdir}
 source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
 hpcx_load
 source /etc/profile
-source /home/cmsupport/workspace/cuda/env.sh
+source ${topdir}/cuda/env.sh
 
 cd ${topdir}
 git clone https://github.com/NVIDIA/nvbandwidth
