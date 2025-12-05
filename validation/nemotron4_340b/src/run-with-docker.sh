@@ -19,7 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN \
   apt update && \
   apt install -y --no-install-recommends \
-    openssh-server openssh-client rdma-core ibverbs-utils infiniband-diags iproute2 iputils-ping \
+    openssh-server openssh-client rdma-core ibverbs-utils infiniband-diags iproute2 iputils-ping pciutils \
     build-essential devscripts debhelper fakeroot && \
   apt autoclean -y && \
   apt autoremove -y && \
