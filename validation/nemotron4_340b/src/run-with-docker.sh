@@ -68,10 +68,11 @@ docker load -i /lustre/raplab/client/junliz/workspace/nemo_25.04.rc2-m2.tar.gz
 ##3. Start container on nodes
 docker rm -f test 
 #--rm --entrypoint /bin/bash \
+#--privileged \
 docker run -it --shm-size 32g  --ipc=host --network=host \
 -d \
---privileged \
---device=/dev/infiniband/uverbs0 --device=/dev/infiniband/rdma_cm \
+--cap-add=IPC_LOCK \
+$(for i in /dev/infiniband/*; do echo --device=$i; done) \
 --ulimit memlock=-1 \
 --ulimit stack=-1 \
 --gpus all \
