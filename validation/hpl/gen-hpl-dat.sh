@@ -72,6 +72,13 @@ ${Q}         Qs
 EOF
 }
 
+cat <<- EOF
+Guideline of P and Q:
+  1. In most of the case, P should be less than Q. As usually the vertical communication is around 4x higher than horizontal.
+  2. If network bandwidth is high enough, P > Q would be better due to better load balancing.
+  3. Bonus Points: P is power of 2.
+  4. P/Q|Q/P: Good=>[1,2); Better=>[2,4]; Bad=>[5,)
+EOF
 mkdir -p ./hpldat
 for i in 1 2 4 8 16 18 32 64 128 256 512 #224 #192 210 #100 #64 #72 #90 #320 400 405 #64 128 256 304 512 #80 #1 2 4 8 16 18 32 36
 do
