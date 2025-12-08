@@ -14,6 +14,7 @@ do
       -N 1 \
       -w "${h}" \
       -t 2:30:00 \
+      --requeue \
       --dependency=singleton \
       --job-name=MNUBERGEMM-${h} \
       --output=${USER}-MNUBERGEMEM-${h}-%j.txt \
