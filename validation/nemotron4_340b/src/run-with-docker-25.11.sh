@@ -306,3 +306,88 @@ mpirun --allow-run-as-root \
   python -m nemo_run.core.runners.fdl_runner -n $(basename ${CASE}|sed -e 's:_fn_or_script::g') ${CASE} 2>&1 | tee log.txt
 
 
+#################
+
+
+cat > /usr/local/bin/sbatch <<- 'EOF'
+#!/bin/bash
+echo "sbatch $@"
+EOF
+chmod a+x /usr/local/bin/sbatch
+cd /opt/NeMo
+rm -f /opt/NeMo/scripts/performance/recommended_model_configs/model_configs_b200.csv
+export OPENBLAS_NUM_THREADS=1
+export NEMORUN_HOME=/tmp/test
+rm -rf /tmp/test
+rm -rf /tmp/pretrain_*
+python -m scripts.performance.llm.pretrain_llama3_70b \
+  --account root \
+  --partition defq \
+  --log_dir ${NEMORUN_HOME} \
+  --gpu b200 \
+  --container_image nvcr.io/nvidian/nemo:25.11-m1 \
+  --fp8_recipe cs \
+  --num_gpus 8 \
+  --gpus_per_node 4 \
+  -tp 2 \
+  -pp 4 \
+  -cp 1 \
+  -vp 1 \
+  -mb 1 \
+  -ep 1 \
+  -fsdp 0 \
+  -cg 0 \
+  -gb 16 \
+  -rl 10 \
+  --max_steps 200
+
+f=$(find /tmp/test -name '*_fn_or_script')
+cp -v $f /tmp/${f##*/}
+hosts=(bcm01-dgx-05 bcm01-dgx-06)
+CASE=/tmp/${f##*/}
+
+ssh -p 2222 ${hosts[1]} "cat > ${CASE}" < ${CASE}
+ssh -p 2222 ${hosts[0]} md5sum ${CASE}
+ssh -p 2222 ${hosts[1]} md5sum ${CASE}
+
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+export OMPI_MCA_plm_rsh_args="-p ${SSH_PORT}"
+mpirun --allow-run-as-root \
+  --mca pml ucx --mca coll ^hcoll --mca btl ^openib,smcuda \
+  --bind-to none \
+  --display-map --display-topo --report-bindings \
+  -x PATH=$PATH \
+  -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+\
+  -x CPATH=/usr/local/cuda/include \
+  -x TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas \
+  -x TRITON_LIB_DIR=/usr/local/cuda/lib64 \
+\
+  --mca btl_tcp_if_include bond0 \
+  --mca oob_tcp_if_include bond0 \
+  -x NCCL_SOCKET_IFNAME=bond0 \
+\
+  -x UCX_TLS=rc \
+  -x UCX_NET_DEVICES="mlx5_10:1,mlx5_13:1,mlx5_14:1,mlx5_15:1" \
+  -x NCCL_DEBUG=INFO \
+  -x NCCL_IB_HCA="=mlx5_10,mlx5_13,mlx5_14,mlx5_15"  \
+\
+  -x TORCH_NCCL_AVOID_RECORD_STREAMS=1 \
+  -x TRANSFORMERS_OFFLINE=1 \
+  -x TOKENIZERS_PARALLELISM=False \
+  -x NCCL_NVLS_ENABLE=0 \
+  -x NVTE_FLASH_ATTN=1 \
+  -x NVTE_FUSED_ATTN=1 \
+  -x NEMO_LOG_MEMORY_USAGE=1 \
+  -x NEMORUN_HOME=$PWD \
+  -x NEMO_HOME=$PWD \
+  -x CUDA_DEVICE_MAX_CONNECTIONS=32 \
+  -x NVTE_FWD_LAYERNORM_SM_MARGIN=16 \
+  -x NVTE_BWD_LAYERNORM_SM_MARGIN=16 \
+  -x NCCL_P2P_NET_CHUNKSIZE=2097152 \
+  -x TORCH_NCCL_HIGH_PRIORITY=1 \
+\
+  -H $(for i in ${hosts[*]}; do echo ${i}:4; done|paste -s -d ',') \
+  -np 8 \
+  python -m nemo_run.core.runners.fdl_runner -n $(basename ${CASE}|sed -e 's:_fn_or_script::g') ${CASE} 2>&1 | tee log.txt
