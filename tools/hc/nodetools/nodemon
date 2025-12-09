@@ -71,4 +71,4 @@ main(){
 }
 export -f main
 
-echo ${nodes[*]} | tr ' ' '\n' | xargs -P 9 -I {} bash -c 'main {}'
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 18 -I {} bash -c 'main {}'
