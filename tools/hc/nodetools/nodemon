@@ -67,7 +67,7 @@ main(){
     for i in ${ms[*]}; do grep -w $i $tmpf||echo "$i nan"; done|awk '{print $NF}'|xargs -I {} printf "%.2f\n" {}|paste -s -d ','
   ))
   echo "${timestamp},${node},${ret[*]}"
-  #rm -f $tmpf
+  rm -f $tmpf
 }
 export -f main
 
