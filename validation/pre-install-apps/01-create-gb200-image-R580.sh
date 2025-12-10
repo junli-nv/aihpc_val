@@ -102,7 +102,7 @@ chmod 755 /var/run/nvidia-fabricmanager
 ## CUDA
 apt install -y cuda-nvml-dev-13-0 #cuda-toolkit-13-0
 
-## GDRCOPY #packages from dgx
+## GDRCOPY #packages from dgx - https://developer.download.nvidia.com/compute/redist/gdrcopy/
 apt install -y gdrdrv-dkms gdrcopy
 
 ## DOCA #packages from dgx, nvidia-system-mlnx-drivers will install doca relate packages from DOCA repo
