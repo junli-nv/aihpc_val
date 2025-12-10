@@ -130,6 +130,8 @@ net.ipv4.conf.default.arp_announce=2
 net.ipv4.conf.default.arp_filter=0
 net.ipv4.conf.default.arp_ignore=1
 net.ipv4.conf.default.rp_filter=0
+### Enabel Magic SysRq
+kernel.sysrq=1
 EOF
 
 systemctl set-default multi-user.target
