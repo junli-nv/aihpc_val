@@ -103,8 +103,13 @@ if [ $extra_check -ne 0 ]; then
       echo $msg
   fi
   ## ipmi i2c errors
-  if [ $(dmesg --since "1 hour ago" | grep 'ipmi_ssif.*i2c-'|wc -l) -gt 10 ]; then
+  if [ $(dmesg --since "1 hour ago" | grep 'ipmi_ssif.*i2c-'|wc -l) -gt 5 ]; then
       msg='WARN: ipmi_ssif i2c errors shown in dmesg'
+      echo $msg
+  fi
+  ## Xid
+  if [ $(dmesg --since "1 hour ago" | grep 'Xid'|wc -l) -gt 2 ]; then
+      msg='WARN: Xid shown in dmesg'
       echo $msg
   fi 
   ##NVME
