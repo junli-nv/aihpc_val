@@ -22,10 +22,12 @@ $(scontrol show hostname $(sinfo -al|grep 'idle '|awk '{print $NF}'))
 #   done
 # done
 
+scancel $(squeue|grep MNUBERGE|awk '{print $1}')
 for i in {0..9}
 do
   for h in ${hosts[*]}
   do
+    timeout 155m \
     sbatch --wait \
       -N 1 \
       -w "${h}" \
@@ -37,4 +39,7 @@ do
       mnubergemm.sbatch &
   done
   wait
+  pdsh -R ssh -f 32 -w $(echo ${hosts[*]} | tr ' ' ',') <<- EOF
+${PWD}/../../tools/hc/checker.sh -e|grep -v PASS||true
+EOF
 done
