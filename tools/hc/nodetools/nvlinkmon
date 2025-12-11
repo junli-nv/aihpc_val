@@ -3,9 +3,10 @@
 #for i in {0..3}; do
 #  echo $i $(dcgmi nvlink -g $i -e 2>&1 |awk -F '|' '/Malformed Packet Erro/,/Effective BER/{print $2, $3}'|paste -s -d' ' | tr -s ' ')
 #done
+duration="${1:-1}"
 sensors0=$(dcgmi dmon -l | grep -w -e sm_clock -e memory_clock -e gpu_utilization -e power_usage | awk '{print $NF}'|paste -s -d ',' -)
 sensors1=$(dcgmi dmon -l | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
 sensors2=$(dcgmi dmon -l | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
 sensors3=$(dcgmi dmon -l | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
-dcgmi dmon -e ${sensors0},${sensors1},${sensors2},${sensors3} -d 1000 | tr -s ' '
+dcgmi dmon -e ${sensors0},${sensors1},${sensors2},${sensors3} -d $[1000*$duration] | tr -s ' '
 
