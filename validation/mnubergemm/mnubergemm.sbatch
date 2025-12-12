@@ -28,7 +28,7 @@ nic=bond0
 #mnubergemm's variables
 #https://nvbugspro.nvidia.com/bug/5634196
 #https://nvbugspro.nvidia.com/bug/5554973
-duration_sec=$[SLURM_JOB_END_TIME-SLURM_JOB_START_TIME-300]
+duration_sec=$[SLURM_JOB_END_TIME-SLURM_JOB_START_TIME-600]
 [ $duration_sec -le 0 ] && duration_sec=86000
 STD="--dynamic_adj --MM_max_workload 65536 --max_workload 65536 --time_to_run ${duration_sec} --workload GNC"
 MM="--MM_M 0 --MM_N 4096 --MM_sm_count 112 --MM_type SX_SX_SSS —MM_force_cublas_algo SQAAABQAAAAiAAAAAQAAAAAAAAAAAAAAAAAAAAAACQAAAAAARdgBAAAAAAAAAAAAAAAAAE0AAAAAAAAAAAAAAA=="
