@@ -34,7 +34,7 @@ STD="--dynamic_adj --MM_max_workload 65536 --max_workload 65536 --time_to_run ${
 MM="--MM_M 0 --MM_N 4096 --MM_sm_count 112 --MM_type SX_SX_SSS —MM_force_cublas_algo SQAAABQAAAAiAAAAAQAAAAAAAAAAAAAAAAAAAAAACQAAAAAARdgBAAAAAAAAAAAAAAAAAE0AAAAAAAAAAAAAAA=="
 NET="--NET_sm_count 32 --NET_link_order scatter_sum --NET_size 20480000"
 CE="--CE_type H --CE_size 2048000"
-FREQQ="--freq 400 --duty 0.9 --dual_mode --dual_freq 0.0025 --dual_duty 0.75 --tri_mode --tri_duty 0.05"
+FREQQ="--freq 400 --duty 0.9 --dual_mode --dual_freq 0.0013888889 --dual_duty 0.50"
 
 set -x
 #1. Check nodes status
