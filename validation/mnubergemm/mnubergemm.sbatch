@@ -26,13 +26,15 @@ nic=bond0
 
 ## Ref: https://confluence.nvidia.com/pages/viewpage.action?spaceKey=DCGM&title=Mndiag+and+mnubergemm+testing+on+GB200+Colorado+%28Equinix%29+cluster+8x+NVL72
 #mnubergemm's variables
+#https://nvbugspro.nvidia.com/bug/5634196
+#https://nvbugspro.nvidia.com/bug/5554973
 duration_sec=$[SLURM_JOB_END_TIME-SLURM_JOB_START_TIME-300]
 [ $duration_sec -le 0 ] && duration_sec=86000
 STD="--dynamic_adj --MM_max_workload 65536 --max_workload 65536 --time_to_run ${duration_sec} --workload GNC"
-MM="--MM_M 0 --MM_N 0 --MM_sm_count 112 --MM_type SX_SX_SSS —MM_force_cublas_algo SQAAABQAAAAiAAAAAQAAAAAAAAAAAAAAAAAAAAAACQAAAAAARdgBAAAAAAAAAAAAAAAAAE0AAAAAAAAAAAAAAA=="
+MM="--MM_M 0 --MM_N 4096 --MM_sm_count 112 --MM_type SX_SX_SSS —MM_force_cublas_algo SQAAABQAAAAiAAAAAQAAAAAAAAAAAAAAAAAAAAAACQAAAAAARdgBAAAAAAAAAAAAAAAAAE0AAAAAAAAAAAAAAA=="
 NET="--NET_sm_count 32 --NET_link_order scatter_sum --NET_size 20480000"
 CE="--CE_type H --CE_size 2048000"
-FREQQ="--freq 400 --duty 0.9 --dual_mode --dual_freq 0.0013888889 --dual_duty 0.50"
+FREQQ="--freq 400 --duty 0.9 --dual_mode --dual_freq 0.0025 --dual_duty 0.75 --tri_mode --tri_duty 0.05"
 
 set -x
 #1. Check nodes status
