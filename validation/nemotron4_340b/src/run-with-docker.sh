@@ -186,3 +186,79 @@ mpirun \
 ##6. clean work
 docker rm -f test
 
+#####################################
+
+
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+export OMPI_MCA_plm_rsh_args="-p ${SSH_PORT}"
+mpirun \
+  --mca pml ucx \
+  --mca pml_ucx_verbose 10 \
+  --bind-to none \
+  --display-map --display-topo --report-bindings \
+  -x PATH=$PATH \
+  -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+  -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1,mlx5_4:1,mlx5_5:1,mlx5_6:1,mlx5_7:1" \
+  -x NCCL_DEBUG=INFO \
+  -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_2,mlx5_3,mlx5_4,mlx5_5,mlx5_6,mlx5_7"  \
+  -H L20-GPU-29:8,L20-GPU-30:8 \
+  -np 16 \
+  all_reduce_perf_mpi -b 8 -f 2 -g 1 -e 16G
+
+python -m scripts.performance.llm.pretrain_llama3_8b \
+  --account root \
+  --partition defq \
+  --log_dir ${NEMORUN_HOME} \
+  --gpu l20 \
+  --container_image nvcr.io/nvidian/nemo:25.04.rc2-m2 \
+  --compute_dtype bf16 \
+  --num_gpus 16 \
+  --gpus_per_node 8 \
+  -tp 2 \
+  -pp 4 \
+  -cp 1 \
+  -ep 1 \
+  -mb 1 \
+  -gb 16 \
+  --max_steps 200
+
+find /tmp/test -name '*_fn_or_script'
+
+CASE=/tmp/pretrain_llama3_8b_bf16_2nodes_tp2_pp4_cp1_vpNone_1mbs_16gbs_fn_or_script
+md5sum ${CASE}
+ssh -p 2222 L20-GPU-30 "cat > ${CASE}" < ${CASE}
+ssh -p 2222 L20-GPU-30 md5sum ${CASE}
+
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+export OMPI_MCA_plm_rsh_args="-p ${SSH_PORT}"
+mpirun \
+  --mca pml ucx \
+  --mca pml_ucx_verbose 10 \
+  --bind-to none \
+  --display-map --display-topo --report-bindings \
+  -x PATH=$PATH \
+  -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+\
+  -x UCX_NET_DEVICES="mlx5_0:1,mlx5_1:1,mlx5_2:1,mlx5_3:1" \
+  -x NCCL_DEBUG=INFO \
+  -x NCCL_IB_HCA="=mlx5_0,mlx5_1,mlx5_2,mlx5_3" \
+\
+  -x TORCH_NCCL_AVOID_RECORD_STREAMS=1 \
+  -x TRANSFORMERS_OFFLINE=1 \
+  -x TOKENIZERS_PARALLELISM=False \
+  -x NCCL_NVLS_ENABLE=0 \
+  -x NVTE_FLASH_ATTN=1 \
+  -x NVTE_FUSED_ATTN=1 \
+  -x NEMO_LOG_MEMORY_USAGE=1 \
+  -x NEMORUN_HOME=$PWD \
+  -x NEMO_HOME=$PWD \
+  -x CUDA_DEVICE_MAX_CONNECTIONS=32 \
+  -x NVTE_FWD_LAYERNORM_SM_MARGIN=16 \
+  -x NVTE_BWD_LAYERNORM_SM_MARGIN=16 \
+  -x NCCL_P2P_NET_CHUNKSIZE=2097152 \
+\
+  -H L20-GPU-29:8,L20-GPU-30:8 \
+  -np 16 \
+  python -m nemo_run.core.runners.fdl_runner -n $(basename ${CASE}|sed -e 's:_fn_or_script::g') ${CASE} | tee log.txt
