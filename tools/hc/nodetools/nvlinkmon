@@ -7,7 +7,7 @@ sensors2=$(dcgmi dmon -l | grep nvlink_bandwidth_total | awk '{print $NF}'|paste
 sensors3=$(dcgmi dmon -l | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
 #HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
 #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
-sensors4=$(dcgmi dmon -l | grep -w -e tensor_active -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
+sensors4=$(dcgmi dmon -l | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
 sensors5=$(dcgmi dmon -l | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
 #above two lines are ratio metrics, may not supported in all GPUs
 dcgmi dmon -e ${sensors4} -c 1 -d 1000 &>/dev/null 
