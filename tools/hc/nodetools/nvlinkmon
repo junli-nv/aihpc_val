@@ -1,16 +1,22 @@
 #!/bin/bash
 
 duration="${1:-1}"
-sensors0=$(dcgmi dmon -l | grep -w -e sm_clock -e memory_clock -e power_usage -e gpu_utilization | awk '{print $NF}'|paste -s -d ',' -)
-sensors1=$(dcgmi dmon -l | grep -w -e fb_total -e fb_free -e fb_used | awk '{print $NF}'|paste -s -d ',' -)
-sensors2=$(dcgmi dmon -l | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
-sensors3=$(dcgmi dmon -l | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
-sensors4=$(dcgmi dmon -l | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
+
+tmpf=$(mktemp)
+dcgmi dmon -l &> $tmpf
+sensors0=$(cat $tmpf | grep -w -e sm_clock -e memory_clock -e power_usage -e gpu_utilization | awk '{print $NF}'|paste -s -d ',' -)
+sensors1=$(cat $tmpf | grep -w -e mem_copy_utilization -e fb_total -e fb_free -e fb_used | awk '{print $NF}'|paste -s -d ',' -)
+sensors2=$(cat $tmpf | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
+sensors3=$(cat $tmpf | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
+sensors4=$(cat $tmpf | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
+
 #HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
 #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
-sensors5=$(dcgmi dmon -l | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
-sensors6=$(dcgmi dmon -l | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
+sensors5=$(cat $tmpf | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
+sensors6=$(cat $tmpf | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
 #above two lines are ratio metrics, may not supported in all GPUs
+rm -f $tmpf
+
 dcgmi dmon -e ${sensors5} -c 1 -d 1000 &>/dev/null 
 ret=$?
 if [ $ret -eq 0 ]; then
