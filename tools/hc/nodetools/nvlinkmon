@@ -2,18 +2,19 @@
 
 duration="${1:-1}"
 sensors0=$(dcgmi dmon -l | grep -w -e sm_clock -e memory_clock -e power_usage -e gpu_utilization | awk '{print $NF}'|paste -s -d ',' -)
-sensors1=$(dcgmi dmon -l | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
-sensors2=$(dcgmi dmon -l | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
-sensors3=$(dcgmi dmon -l | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
+sensors1=$(dcgmi dmon -l | grep -w -e fb_total -e fb_free -e fb_used | awk '{print $NF}'|paste -s -d ',' -)
+sensors2=$(dcgmi dmon -l | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
+sensors3=$(dcgmi dmon -l | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
+sensors4=$(dcgmi dmon -l | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
 #HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
 #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
-sensors4=$(dcgmi dmon -l | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
-sensors5=$(dcgmi dmon -l | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
+sensors5=$(dcgmi dmon -l | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
+sensors6=$(dcgmi dmon -l | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
 #above two lines are ratio metrics, may not supported in all GPUs
-dcgmi dmon -e ${sensors4} -c 1 -d 1000 &>/dev/null 
+dcgmi dmon -e ${sensors5} -c 1 -d 1000 &>/dev/null 
 ret=$?
 if [ $ret -eq 0 ]; then
-  dcgmi dmon -e ${sensors0},${sensors4},${sensors5},${sensors1},${sensors2},${sensors3} -d $[1000*$duration] | tr -s ' '
+  dcgmi dmon -e ${sensors0},${sensors5},${sensors6},${sensors1},${sensors2},${sensors3},${sensors4} -d $[1000*$duration] | tr -s ' '
 else
-  dcgmi dmon -e ${sensors0},${sensors1},${sensors2},${sensors3} -d $[1000*$duration] | tr -s ' '
+  dcgmi dmon -e ${sensors0},${sensors1},${sensors2},${sensors3},${sensors4} -d $[1000*$duration] | tr -s ' '
 fi
