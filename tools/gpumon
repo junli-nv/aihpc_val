@@ -46,18 +46,44 @@ done
 ))
 rm -f $tmpf
 
+declare -A port_rcv_data  port_rcv_data2
+declare -A port_xmit_data port_xmit_data2
+nics=($(ls -1 /sys/class/infiniband))
+for d in ${nics[@]}; do
+  if [ -f /sys/class/infiniband/${d}/ports/1/counters/port_rcv_data ]; then
+    port_rcv_data[$d]=$(</sys/class/infiniband/${d}/ports/1/counters/port_rcv_data)
+    port_xmit_data[$d]=$(</sys/class/infiniband/${d}/ports/1/counters/port_xmit_data)
+  fi
+done
 ## Main
-header="$(dcgmi dmon -c 1 -e $(echo ${sensors[@]}|tr ' ' ',') | head -n 1|tr -s ' ')"
+header="$(dcgmi dmon -c 1 -e $(echo ${sensors[@]}|tr ' ' ',') | head -n 1|tr -s ' ') $(echo ${nics[*]}|tr ' ' '\n'|xargs -I {} echo {}:RMB {}:TMB|paste -s -d ' ')"
 i=0
 while :; do
-  if [ $[i%10] -eq 0 ]; then
+  if [ $[i%5] -eq 0 ]; then
     printf "%25s %s\n" TIMESTAMP "$header"
   fi
   ts="$(date -Is)"
+  for d in ${nics[@]}; do
+    if [ -f /sys/class/infiniband/${d}/ports/1/counters/port_rcv_data ]; then
+      port_rcv_data2[$d]=$(</sys/class/infiniband/${d}/ports/1/counters/port_rcv_data)
+      port_xmit_data2[$d]=$(</sys/class/infiniband/${d}/ports/1/counters/port_xmit_data)
+    fi
+  done
+  ib_ret=($(
+  for d in ${nics[@]}; do
+     echo "$[(${port_rcv_data2[$d]}-${port_rcv_data[${d}]})*4/1000/1000] $[(${port_xmit_data2[${d}]}-${port_xmit_data[${d}]})*4/1000/1000]"
+  done 
+  ))
   dcgmi dmon -c 1 -d $[1000*$duration] -e $(echo ${sensors[@]}|tr ' ' ',') \
-    | tail -n +3 | tr -s ' ' | sed 's#GPU \([0-9]\)#GPU_\1#g' | xargs -I {} echo $ts {}
+    | tail -n +3 | tr -s ' ' | sed 's#GPU \([0-9]\)#GPU_\1#g' | while read line; do
+    echo $ts $line ${ib_ret[*]}
+  done
   sleep $duration
   i=$[i+1]
+  for d in ${!port_rcv_data[@]}; do
+    port_rcv_data[$d]=${port_rcv_data2[$d]}
+    port_xmit_data[$d]=${port_xmit_data2[$d]}
+  done
 done
 
 # cat log.txt | grep GPU_0 | grep -v TIMESTAMP|awk '{print $7}'| gnuplot -e "set term dumb size 300,50; set xtics 50; plot '-' with linespoints"
