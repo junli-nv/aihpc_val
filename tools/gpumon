@@ -52,3 +52,5 @@ while :; do
   sleep $duration
   i=$[i+1]
 done
+
+# cat log.txt | grep GPU_0 | grep -v TIMESTAMP|awk '{print $7}'| gnuplot -e "set term dumb size 300,50; set xtics 50; plot '-' with linespoints"
