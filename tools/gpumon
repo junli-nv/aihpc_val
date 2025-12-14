@@ -5,16 +5,15 @@ duration="${1:-1}"
 tmpf=$(mktemp)
 dcgmi dmon -l &> $tmpf
 
-#HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
-#IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
 metrics=(
   sm_clock
   memory_clock
   gpu_temp
+  memory_temp
   power_usage
   gpu_utilization
-  tensor_imma_active
-  tensor_hmma_active
+  tensor_imma_active #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
+  tensor_hmma_active #HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
   fp64_active
   fp32_active
   mem_copy_utilization
