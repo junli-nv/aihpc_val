@@ -16,10 +16,10 @@ sensors5=$(cat $tmpf | grep -w -e tensor_imma_active -e tensor_hmma_active | awk
 sensors6=$(cat $tmpf | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
 #above two lines are ratio metrics, may not supported in all GPUs
 rm -f $tmpf
-dcgmi dmon -e ${sensors5} -c 1 -d 1000 &>/dev/null 
+dcgmi dmon -e ${sensors5} -c 1 -d 1000 &>/dev/null
 ret=$?
 if [ $ret -eq 0 ]; then
-  sensors=${sensors0},${sensors5},${sensors6},${sensors1},${sensors2},${sensors3},${sensors4} 
+  sensors=${sensors0},${sensors5},${sensors6},${sensors1},${sensors2},${sensors3},${sensors4}
 else
   sensors=${sensors0},${sensors1},${sensors2},${sensors3},${sensors4}
 fi
@@ -29,7 +29,7 @@ header="$(dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | head -n 1|tr -s '
 i=0
 while :; do
   if [ $[i%10] -eq 0 ]; then
-    echo "TIMESTAMP $header"
+    printf "%25s %s\n" TIMESTAMP "$header"
   fi
   ts="$(date -Is)"
   dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | tail -n +3 | tr -s ' '|xargs -I {} echo $ts {}
