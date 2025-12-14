@@ -25,6 +25,11 @@ metrics=(
   nvlink_bandwidth_l[0-9][0-9]
   nvlink_bandwidth_total
   nvlink.*error.*total*
+  ecc_sbe_volatile_total
+  ecc_dbe_volatile_total
+  ecc_sbe_aggregate_total
+  ecc_dbe_aggregate_total
+  xid_errors
 )
 
 sensors=($(
