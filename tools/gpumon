@@ -32,7 +32,7 @@ while :; do
     printf "%25s %s\n" TIMESTAMP "$header"
   fi
   ts="$(date -Is)"
-  dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | tail -n +3 | tr -s ' '|xargs -I {} echo $ts {}
+  dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | tail -n +3 | tr -s ' '|sed 's#GPU \([0-9]\)#GPU_\1#g'|xargs -I {} echo $ts {}
   sleep $duration
   i=$[i+1]
 done
