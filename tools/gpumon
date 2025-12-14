@@ -4,35 +4,47 @@ duration="${1:-1}"
 
 tmpf=$(mktemp)
 dcgmi dmon -l &> $tmpf
-sensors0=$(cat $tmpf | grep -w -e sm_clock -e memory_clock -e power_usage -e gpu_utilization | awk '{print $NF}'|paste -s -d ',' -)
-sensors1=$(cat $tmpf | grep -w -e mem_copy_utilization -e fb_total -e fb_free -e fb_used | awk '{print $NF}'|paste -s -d ',' -)
-sensors2=$(cat $tmpf | grep nvlink_bandwidth_l | awk '{print $NF}'|paste -s -d ',' -)
-sensors3=$(cat $tmpf | grep nvlink_bandwidth_total | awk '{print $NF}'|paste -s -d ',' -)
-sensors4=$(cat $tmpf | grep nvlink.*error.*total | awk '{print $NF}'|paste -s -d ',' -)
 
 #HMMA(Half-precision Matrix Multiply-Accumulate): FP16,BF16,TF32,FP8
 #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
-sensors5=$(cat $tmpf | grep -w -e tensor_imma_active -e tensor_hmma_active | awk '{print $NF}'|paste -s -d ',' -)
-sensors6=$(cat $tmpf | grep -w -e fp64_active -e fp32_active | awk '{print $NF}'|paste -s -d ',' -)
-#above two lines are ratio metrics, may not supported in all GPUs
+metrics=(
+  sm_clock
+  memory_clock
+  gpu_temp
+  power_usage
+  gpu_utilization
+  tensor_imma_active
+  tensor_hmma_active
+  fp64_active
+  fp32_active
+  mem_copy_utilization
+  fb_total
+  fb_free
+  fb_used
+  nvlink_bandwidth_l[0-9]
+  nvlink_bandwidth_l[0-9][0-9]
+  nvlink_bandwidth_total
+  nvlink.*error.*total*
+)
+
+sensors=($(
+for m in ${metrics[@]}; do
+  #echo $m $(awk "/${m} /{print \$NF}" $tmpf)
+  echo $(awk "/${m} /{print \$NF}" $tmpf)
+done
+))
 rm -f $tmpf
-dcgmi dmon -e ${sensors5} -c 1 -d 1000 &>/dev/null
-ret=$?
-if [ $ret -eq 0 ]; then
-  sensors=${sensors0},${sensors5},${sensors6},${sensors1},${sensors2},${sensors3},${sensors4}
-else
-  sensors=${sensors0},${sensors1},${sensors2},${sensors3},${sensors4}
-fi
 
 ## Main
-header="$(dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | head -n 1|tr -s ' ')"
+header="$(dcgmi dmon -c 1 -e $(echo ${sensors[@]}|tr ' ' ',') | head -n 1|tr -s ' ')"
 i=0
 while :; do
   if [ $[i%10] -eq 0 ]; then
     printf "%25s %s\n" TIMESTAMP "$header"
   fi
   ts="$(date -Is)"
-  dcgmi dmon -c 1 -d $[1000*$duration] -e ${sensors} | tail -n +3 | tr -s ' '|sed 's#GPU \([0-9]\)#GPU_\1#g'|xargs -I {} echo $ts {}
+  dcgmi dmon -c 1 -d $[1000*$duration] -e $(echo ${sensors[@]}|tr ' ' ',') \
+    | tail -n +3 | tr -s ' ' | sed 's#GPU \([0-9]\)#GPU_\1#g' | xargs -I {} echo $ts {}
   sleep $duration
   i=$[i+1]
 done
