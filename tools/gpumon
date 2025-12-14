@@ -59,7 +59,7 @@ done
 header="$(dcgmi dmon -c 1 -e $(echo ${sensors[@]}|tr ' ' ',') | head -n 1|tr -s ' ') $(echo ${nics[*]}|tr ' ' '\n'|xargs -I {} echo {}:RMB {}:TMB|paste -s -d ' ')"
 i=0
 while :; do
-  if [ $[i%5] -eq 0 ]; then
+  if [ $[i%10] -eq 0 ]; then
     printf "%25s %s\n" TIMESTAMP "$header"
   fi
   ts="$(date -Is)"
