@@ -72,7 +72,7 @@ while :; do
   done
   ib_ret=($(
   for d in ${nics[@]}; do
-     echo "$[(${port_rcv_data2[$d]}-${port_rcv_data[${d}]})*4/1000/1000/$duration] $[(${port_xmit_data2[${d}]}-${port_xmit_data[${d}]})*4/1000/1000/$duration]"
+     echo "$[(${port_rcv_data2[$d]}-${port_rcv_data[${d}]})*4/1024/1024/$duration] $[(${port_xmit_data2[${d}]}-${port_xmit_data[${d}]})*4/1024/1024/$duration]"
   done 
   ))
   dcgmi dmon -c 1 -d $[1000*$duration] -e $(echo ${sensors[@]}|tr ' ' ',') \
