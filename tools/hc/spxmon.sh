@@ -12,5 +12,5 @@ for i in $(grep ACTIVE /sys/class/infiniband/*/ports/1/state|cut -f5 -d'/'); do 
 EOF
 
 pdsh -f 100 -R ssh -w ${NODELIST} <<- 'EOF'
-for i in $(grep ACTIVE /sys/class/infiniband/*/ports/1/state|cut -f5 -d'/'); do mlxlink -d ${i} -p 1 -pc &>/dev/null; done
+for i in $(grep ACTIVE /sys/class/infiniband/*/ports/1/state|cut -f5 -d'/'); do mlxlink -d ${i} -p 1 --pc &>/dev/null; done
 EOF
