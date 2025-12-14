@@ -29,6 +29,9 @@ metrics=(
   ecc_sbe_aggregate_total
   ecc_dbe_aggregate_total
   xid_errors
+  ^name
+  pci_busid
+  serial_number
 )
 dcgmi dmon -c 1 -e $(dcgmi dmon -l|grep -e tensor -e fp64_active -e fp32_active|awk '{print $NF}'|paste -s -d',') &>/dev/null
 ret=$?
