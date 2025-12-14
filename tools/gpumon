@@ -30,9 +30,13 @@ metrics=(
   ecc_dbe_aggregate_total
   xid_errors
 )
-
+dcgmi dmon -c 1 -e $(dcgmi dmon -l|grep -e tensor -e fp64_active -e fp32_active|awk '{print $NF}'|paste -s -d',') &>/dev/null
+ret=$?
 sensors=($(
 for m in ${metrics[@]}; do
+  if [ $ret -ne 0 ] && [[ $m == tensor* || $m == fp64_active || $m == fp32_active ]]; then
+    continue
+  fi
   #echo $m $(awk "/${m} /{print \$NF}" $tmpf)
   echo $(awk "/${m} /{print \$NF}" $tmpf)
 done
