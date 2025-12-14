@@ -49,6 +49,7 @@ rm -f $tmpf
 declare -A port_rcv_data  port_rcv_data2
 declare -A port_xmit_data port_xmit_data2
 nics=($(for i in /sys/class/infiniband/*; do [ -e $i/device/hwmon ] && echo ${i##*/}; done | sort -n -k2 -t '_'))
+echo ${nics[@]}|tr ' ' '\n'|xargs -P 4 -I {} mlxlink -d {} -p 1 --pc &>/dev/null
 for d in ${nics[@]}; do
   if [ -f /sys/class/infiniband/${d}/ports/1/counters/port_rcv_data ]; then
     port_rcv_data[$d]=$(</sys/class/infiniband/${d}/ports/1/counters/port_rcv_data)
