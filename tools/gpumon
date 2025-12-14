@@ -6,6 +6,8 @@ tmpf=$(mktemp)
 dcgmi dmon -l &> $tmpf
 
 metrics=(
+  ^name
+  pci_busid
   sm_clock
   memory_clock
   gpu_temp
@@ -29,9 +31,7 @@ metrics=(
   ecc_sbe_aggregate_total
   ecc_dbe_aggregate_total
   xid_errors
-  ^name
-  pci_busid
-  serial_number
+  #serial_number
 )
 dcgmi dmon -c 1 -e $(dcgmi dmon -l|grep -e tensor -e fp64_active -e fp32_active|awk '{print $NF}'|paste -s -d',') &>/dev/null
 ret=$?
@@ -75,7 +75,7 @@ while :; do
   done 
   ))
   dcgmi dmon -c 1 -d $[1000*$duration] -e $(echo ${sensors[@]}|tr ' ' ',') \
-    | tail -n +3 | tr -s ' ' | sed 's#GPU \([0-9]\)#GPU_\1#g' | while read line; do
+    | tail -n +3 | tr -s ' ' | sed -e 's#GPU \([0-9]\)#GPU_\1#g' -e 's#NVIDIA #NVIDIA_#g' | while read line; do
     echo $ts $line ${ib_ret[*]}
   done
   sleep $duration
@@ -86,4 +86,4 @@ while :; do
   done
 done
 
-# cat log.txt | grep GPU_0 | grep -v TIMESTAMP|awk '{print $7}'| gnuplot -e "set term dumb size 300,50; set xtics 50; plot '-' with linespoints"
+# cat log.txt | grep GPU_0 | grep -v TIMESTAMP|awk '{print $9}'| gnuplot -e "set term dumb size 300,50; set xtics 50; plot '-' with linespoints"
