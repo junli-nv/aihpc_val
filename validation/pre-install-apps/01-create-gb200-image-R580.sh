@@ -17,7 +17,7 @@ rm -rf /var/lib/command-not-found /var/cache/swcatalog
 apt purge -y command-not-found appstream update-notifier-common
 dpkg -l|grep -E 'command-not-found|appstream|update-notifier-common'
 ## Remove nvidia driver 570.x installed in base image
-apt purge $(dpkg -l|grep 570.172|awk '{print $2,$3}'|sed 's#:arm64##'|tr ' ' '=')
+apt purge $(dpkg -l|grep 570.[0-9]|awk '{print $2,$3}'|sed 's#:arm64##'|tr ' ' '=')
 
 ## Add nvidia dgx repositories
 ## https://docs.nvidia.com/dgx/dgx-os-7-user-guide/installing_on_ubuntu.html#installing-dgx-system-configurations-and-tools
