@@ -100,7 +100,7 @@ physical     eth1                 10.135.32.209    rack2-oob        always
 ## Target nodes Status:
 
 ```
-pdsh -R ssh -w GB200-Rack2-CT[01-18] <<- EOF | dshbak -c
+root@std-bcm-mst01:~# pdsh -R ssh -w GB200-Rack2-CT[01-18] <<- EOF | dshbak -c
 dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00
 EOF
 ----------------
