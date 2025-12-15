@@ -294,6 +294,9 @@ EOF
 cat > /cm/images/${image_name}/etc/modprobe.d/nvidia-imex.conf <<- EOF
 options nvidia NVreg_CreateImexChannel0=1
 EOF
+cat > /cm/images/${image_name}/etc/modprobe.d/nvprofiling.conf <<- EOF
+options nvidia NVreg_RestrictProfilingToAdminUsers=0
+EOF
 
 kvers=($(ls -1 /cm/images/${image_name}/lib/modules))
 #Ref:
