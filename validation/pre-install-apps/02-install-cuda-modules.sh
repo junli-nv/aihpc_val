@@ -10,16 +10,17 @@
 cd /home/cmsupport/workspace
 
 # https://developer.nvidia.com/cuda-toolkit-archive
-wget https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/cuda_12.8.1_570.124.06_linux_sbsa.run
+## CUDA 12
+# wget https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/cuda_12.8.1_570.124.06_linux_sbsa.run
+wget -c https://developer.download.nvidia.com/compute/cuda/12.9.1/local_installers/cuda_12.9.1_575.57.08_linux_sbsa.run
+## CUDA 13
+# wget -c https://developer.download.nvidia.com/compute/cuda/13.1.0/local_installers/cuda_13.1.0_590.44.01_linux_sbsa.run
 
-cp -arv /cm/images/default-image-ubuntu2404-aarch64/ u2404-aarch64/
-cp cuda_12.8.1_570.124.06_linux_sbsa.run u2404-aarch64/
-chroot u2404-aarch64/
+## Install cuda toolkits on a compute node
 mkdir -p /home/cmsupport/workspace/cuda
-bash cuda_12.8.1_570.124.06_linux_sbsa.run --silent --toolkit --no-opengl-libs --no-drm --installpath=/home/cmsupport/workspace/cuda
-exit
-mv u2404-aarch64/home/cmsupport/workspace/cuda .
-rm -rf u2404-aarch64
+bash cuda_12.9.1_575.57.08_linux_sbsa.run --silent --toolkit --no-opengl-libs --no-drm --installpath=/home/cmsupport/workspace/cuda12
+# bash cuda_13.1.0_590.44.01_linux_sbsa.run --silent --toolkit --no-opengl-libs --no-drm --installpath=/home/cmsupport/workspace/cuda13
+ln -sf /home/cmsupport/workspace/cuda12 /home/cmsupport/workspace/cuda
 
 cat > /home/cmsupport/workspace/cuda/env.sh <<- 'EOF'
 #!/bin/bash

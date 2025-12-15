@@ -19,6 +19,11 @@ enroot import \
  --output ${topdir}/hpc-benchmarks-25.04.sqsh \
  'docker://nvcr.io/nvidia/hpc-benchmarks:25.04'
 
+enroot import \
+ --arch aarch64 \
+ --output ${topdir}/hpc-benchmarks-25.09.sqsh \
+ 'docker://nvcr.io/nvidia/hpc-benchmarks:25.09'
+
 ## Nemo Image
 enroot import \
  --arch aarch64 \

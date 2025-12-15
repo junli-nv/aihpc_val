@@ -4,10 +4,17 @@
 topdir=/home/cmsupport/workspace
 mkdir -p ${topdir}
 cd ${topdir}
+
+# https://developer.nvidia.com/networking/hpc-x
+## CUDA 12
 wget https://content.mellanox.com/hpc/hpc-x/v2.22.1rc4/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64.tbz
 tar xjvf hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64.tbz
-
 source ${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64/hpcx-mt-init-ompi.sh
+
+## CUDA 13
+# wget https://content.mellanox.com/hpc/hpc-x/v2.25.1_cuda13/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz
+# tar xjvf hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64.tbz
+
 hpcx_load
 source /etc/profile
 source /home/cmsupport/workspace/cuda/env.sh

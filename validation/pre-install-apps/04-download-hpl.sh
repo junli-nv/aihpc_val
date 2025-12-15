@@ -4,9 +4,13 @@
 topdir=/home/cmsupport/workspace
 mkdir -p ${topdir}
 cd ${topdir}
-#https://developer.nvidia.com/nvidia-hpc-benchmarks-downloads?target_os=Linux&target_arch=arm64-sbsa&Compilation=Native&Distribution=Agnostic&Implementation=OpenMPI
+
+#URL: https://developer.nvidia.com/nvidia-hpc-benchmarks-downloads?target_os=Linux&target_arch=arm64-sbsa&Compilation=Native&Distribution=Agnostic&Implementation=OpenMPI
 wget https://developer.download.nvidia.com/compute/nvidia-hpc-benchmarks/redist/nvidia_hpc_benchmarks_openmpi/linux-sbsa/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive.tar.xz
 tar -xJvf nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.04.01-archive.tar.xz
+
+# wget https://developer.download.nvidia.com/compute/nvidia-hpc-benchmarks/redist/nvidia_hpc_benchmarks_openmpi/linux-sbsa/nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.09.06-archive.tar.xz
+# tar -xJvf nvidia_hpc_benchmarks_openmpi-linux-sbsa-25.09.06-archive.tar.xz
 
 ########### Check HPL binary
 topdir=/home/cmsupport/workspace
