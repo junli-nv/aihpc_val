@@ -110,3 +110,8 @@ echo -e "\n########INFO: Check dmesg - ipmi_ssif(Expected: No Call trace*)"
 pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF'
 ([ $(dmesg --since "60 min ago"|grep "ipmi_ssif.*i2c-"|wc -l) -lt 10 ] && echo "PASS" || echo "FAIL")|grep -v PASS||true
 EOF
+
+echo -e "\n########INFO: Check original connectors(Expected: No original connectors)"
+pdsh -f 100 -R ssh -w $(echo ${hosts[*]}|tr ' ' ',') <<- 'EOF' | dshbak -c
+dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00 && echo "FAIL" || echo "PASS"
+EOF
