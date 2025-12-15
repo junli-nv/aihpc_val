@@ -21,3 +21,15 @@ md5sum /etc/nvidia-imex/nodes_config.cfg          #expected: same on all 18 node
 systemctl start nvidia-imex.service
 systemctl status nvidia-imex.service|grep Active: #expected: running
 EOF
+
+## FIX hostname shown only in nodes_config.cfg issue 
+## Ref: https://nvbugspro.nvidia.com/bug/5473669
+# In cmsh, pick the network used for IMEX (example: computenet):
+cmsh -c '
+network
+use computenet        # adjust to your actual compute network
+set -e imexip yes
+set -e imex yes
+commit
+'
+# Then restart nvidia-imex service on all nodes
