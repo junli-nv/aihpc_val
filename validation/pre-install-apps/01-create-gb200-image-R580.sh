@@ -94,7 +94,8 @@ ln -sf libnvidia-ml.so.1 libnvidia-ml.so
 apt install -y \
   libnvidia-container-tools libnvidia-container1 nvidia-container-toolkit nvidia-container-toolkit-base
 apt install -y \
-  datacenter-gpu-manager-4-core datacenter-gpu-manager-4-cuda13
+  datacenter-gpu-manager-4-core datacenter-gpu-manager-exporter \
+  datacenter-gpu-manager-4-cuda13 datacenter-gpu-manager-4-multinode-cuda13
 systemctl enable nvidia-persistenced nvidia-dcgm nvidia-imex #nvidia-fabricmanager 
 mkdir -p /var/run/nvidia-fabricmanager
 chmod 755 /var/run/nvidia-fabricmanager
@@ -183,7 +184,7 @@ start_rdma-ndd(){
 export -f start_rdma-ndd
 nohup bash -c "start_rdma-ndd" &>/tmp/rdma-ndd.txt &
 
-ipmitool raw 0x3c 0x74 100 &>/dev/null
+#ipmitool raw 0x3c 0x74 100 &>/dev/null
 
 #echo performance > /sys/module/pcie_aspm/parameters/policy
 
