@@ -172,6 +172,12 @@ if [ $extra_check -ne 0 ]; then
     msg="WARN: GPUs are not all in P0 state"
     echo $msg
   fi
+  ## Original connectors check
+  ret=$(dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00 | wc -l)
+  if [ $ret -ne 0 ]; then
+    msg="WARN: Original connectors detected"
+    echo $msg
+  fi
 fi
 
 if [ ${check_cpu} -ne 0 ]; then
