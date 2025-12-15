@@ -123,7 +123,8 @@ less tlog-1node.log
 ## Per rack test
 for r in ${a[*]}
 do
-  rack=$(echo $r|cut -c7-15)
+  #rack=$(echo $r|cut -c7-15)
+  rack=$(echo $r|cut -d'-' -f2)
   hosts=($(scontrol show hostname $r))
   step=${#hosts[*]}
   if [[ ${#hosts[*]} -ge 18 ]]; then
