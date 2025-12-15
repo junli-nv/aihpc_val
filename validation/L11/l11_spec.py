@@ -36,7 +36,7 @@ NODE_IP_LOGIC = {
 
 # Login Credentials (MUST BE CHANGED!)
 LOGIN_CREDENTIALS = {
-    "compute_node": {"user": "pdmfg", "passwd": "pdmfg"},
+    "compute_node": {"user": "root", "passwd": "B1td1erNv@2025"},
     "switch_node": {"user": "admin", "passwd": "Aivres@111"},
     "inter_switch_node": {"user": "root_inter_switch", "passwd": "password_inter_switch"},
 }
