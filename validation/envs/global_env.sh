@@ -7,6 +7,7 @@ export topdir=/home/cmsupport/workspace
 
 #HPCX
 #HPCX_HOME=${topdir}/hpcx-v2.24.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64
+#HPCX_HOME=${topdir}/hpcx-v2.25.1-gcc-doca_ofed-ubuntu24.04-cuda13-aarch64
 HPCX_HOME=${topdir}/hpcx-v2.22.1-gcc-doca_ofed-ubuntu24.04-cuda12-aarch64
 source ${HPCX_HOME}/hpcx-mt-init-ompi.sh
 hpcx_load
