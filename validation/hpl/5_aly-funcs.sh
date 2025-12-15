@@ -19,7 +19,7 @@ done
 plog-1node(){
 [ $# -eq 0 ] && logdir=./ || logdir=$1
 hosts=(
-$(ls -1 ${logdir}/*-1N-*.txt|grep -o -- -1N-.*|cut -c5-29|sort|uniq)
+$(ls -1 ${logdir}/*-1N-*.txt|grep -o -- -1N-.*|sed -e 's#.*-1N-##g' -e 's#-[0-9]*.txt##g'|sort|uniq)
 )
 printf "%20s%10s%20s%20s%20s%20s%10s\n" HOSTNAME LOOPS "MAX(TF)" "MIN(TF)" "AVG(TF)" "AVG(TF)perGPU" "VAR(%)"
 for i in ${hosts[*]}; do
