@@ -22,6 +22,7 @@ i=0; for s in ${nvsw_ips[@]}; do
   export SWITCH_NODE_${i}_IP=${s}
   i=$[i+1]
 done
+export NMX_C_IP=${SWITCH_NODE_0_IP}
 
 export COMPUTE_NODE_USER="root"
 export COMPUTE_NODE_PASSWD="B1td1erNv@2025"
@@ -43,7 +44,7 @@ cat spec_gb200_nvl_72_2_4_compute_nodes_nvlgpustress_partner_mfg.json \
  | jq ".global_args.bmc_redfish_credentials.password=\"${BMC_PASSWD}\"" \
  | jq ".global_args.bmc_ssh_credentials.username=\"${BMC_USER}\"" \
  | jq ".global_args.bmc_ssh_credentials.password=\"${BMC_PASSWD}\"" \
- | jq ".actions[1].args.enable_prometheus=\"false\"" \
+ | jq ".actions[1].args.enable_prometheus=false" \
 \
  | sed \
   -e "s#10.114.248.6\"#${COMPUTE_NODE_0_IP}\"#g" \
@@ -73,4 +74,4 @@ cat spec_gb200_nvl_72_2_4_compute_nodes_nvlgpustress_partner_mfg.json \
   -e "s#10.114.248.107\"#${SWITCH_NODE_6_IP}\"#g" \
   -e "s#10.114.248.108\"#${SWITCH_NODE_7_IP}\"#g" \
   -e "s#10.114.248.109\"#${SWITCH_NODE_8_IP}\"#g" \
-  -e "s#10.115.17.102:9352#${SWITCH_NODE_0_IP}:9352#g" 
+  -e "s#10.115.17.102:9352#${NMX_C_IP}:9352#g" 
