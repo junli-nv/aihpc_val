@@ -9,8 +9,9 @@ rack=GB200-Rack2
 BCM_HEADNODE_IP=10.135.8.2
 
 pdsh -R ssh -w $(cmsh -c "device list -r ${rack}"|grep PhysicalNode|awk '{print $2}'|paste -sd, -) <<- EOF | dshbak -c
-systemctl stop cmd munge slurmd
-systemctl is-active cmd munge slurmd||true
+systemctl stop cmd munge slurmd nvidia-persistenced nvidia-dcgm nvidia-imex nvsm
+modprobe -r nvidia_drm nvidia_uvm nvidia_modeset gdrdrv nvidia_cspmu nvidia_fs nv_peer_mem nv_peermem nvidia_peermem 
+modprobe --remove --remove-dependencies -f nvidia
 dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00
 EOF
 
