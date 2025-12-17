@@ -46,57 +46,6 @@ Switch           GB200-Rack2-NVSW8  50:00:E6:2D:DB:36                   10.135.3
 Switch           GB200-Rack2-NVSW9  50:00:E6:99:ED:7E                   10.135.32.208    rack2-oob        [  DOWN  ]
 ```
 
-## NVswitches IPs of Rack02
-
-```
-[std-bcm-mst01->device]% foreach -n GB200-Rack2-NVSW1..GB200-Rack2-NVSW9 (interfaces; list)
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.147    rack2-oob        always
-physical     eth0                 10.135.32.192    rack2-oob        always
-physical     eth1                 10.135.32.193    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.148    rack2-oob        always
-physical     eth0                 10.135.32.194    rack2-oob        always
-physical     eth1                 10.135.32.195    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.149    rack2-oob        always
-physical     eth0                 10.135.32.196    rack2-oob        always
-physical     eth1                 10.135.32.197    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.150    rack2-oob        always
-physical     eth0                 10.135.32.198    rack2-oob        always
-physical     eth1                 10.135.32.199    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.151    rack2-oob        always
-physical     eth0                 10.135.32.200    rack2-oob        always
-physical     eth1                 10.135.32.201    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.152    rack2-oob        always
-physical     eth0                 10.135.32.202    rack2-oob        always
-physical     eth1                 10.135.32.203    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.153    rack2-oob        always
-physical     eth0                 10.135.32.204    rack2-oob        always
-physical     eth1                 10.135.32.205    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.154    rack2-oob        always
-physical     eth0                 10.135.32.206    rack2-oob        always
-physical     eth1                 10.135.32.207    rack2-oob        always
-Type         Network device name  IP               Network          Start if
------------- -------------------- ---------------- ---------------- --------
-bmc          rf0                  10.135.32.155    rack2-oob        always
-physical     eth0                 10.135.32.208    rack2-oob        always
-physical     eth1                 10.135.32.209    rack2-oob        always
-```
-
 ## Target nodes Status:
 
 ```
