@@ -20,14 +20,6 @@
                 "compute_node": {
                     "user": "root",
                     "passwd": "B1td1erNv@2025"
-                },
-                "switch_node": {
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "inter_switch_node": {
-                    "user": "root_inter_switch",
-                    "passwd": "password_inter_switch"
                 }
             },
             "hosts": {
@@ -94,78 +86,6 @@
                     "rack_id": "Rack_0",
                     "user": "root",
                     "passwd": "B1td1erNv@2025"
-                },
-                "10.135.32.193": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_0",
-                    "rack_slot": 9,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.195": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_1",
-                    "rack_slot": 10,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.197": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_2",
-                    "rack_slot": 11,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.199": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_3",
-                    "rack_slot": 12,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.201": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_4",
-                    "rack_slot": 13,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.203": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_5",
-                    "rack_slot": 14,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.205": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_6",
-                    "rack_slot": 15,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.207": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_7",
-                    "rack_slot": 16,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
-                },
-                "10.135.32.209": {
-                    "node_type": "switch_node",
-                    "host_id": "SWITCH_NODE_8",
-                    "rack_slot": 17,
-                    "rack_id": "Rack_0",
-                    "user": "admin",
-                    "passwd": "Aivres@111"
                 },
                 "10.135.0.73": {
                     "node_type": "compute_node",
@@ -249,7 +169,6 @@
                 }
             }
         },
-        "prometheus_url": "http://10.135.32.193:9352/csv/metrics",
         "EnableDeviceVerify": false,
         "enable_mods_gdm": true,
         "enable_mods_fm": true,
@@ -302,7 +221,7 @@
                     "skip_test": true
                 },
                 "timeout_sec": 6600,
-                "enable_prometheus": true,
+                "enable_prometheus": false,
                 "nvl_ec_post_process_product_args": true
             },
             "env_check": [
