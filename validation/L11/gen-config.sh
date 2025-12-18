@@ -44,7 +44,7 @@ cat spec_gb200_nvl_72_2_4_compute_nodes_nvlgpustress_partner_mfg.json \
  | jq ".global_args.bmc_redfish_credentials.password=\"${BMC_PASSWD}\"" \
  | jq ".global_args.bmc_ssh_credentials.username=\"${BMC_USER}\"" \
  | jq ".global_args.bmc_ssh_credentials.password=\"${BMC_PASSWD}\"" \
- | jq ".actions[1].args.enable_prometheus=false" \
+ | jq ".actions[1].args.enable_prometheus=true" \
 \
  | sed \
   -e "s#10.114.248.6\"#${COMPUTE_NODE_0_IP}\"#g" \
