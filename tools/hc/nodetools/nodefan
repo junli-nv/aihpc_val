@@ -1,25 +1,34 @@
 #!/bin/bash
 
 topdir=$(dirname $(realpath $0))
-
 source $topdir/func.sh
-hostlist=$topdir/hosts.list
+export hostlist=$topdir/hosts.list
 
-node=$1
-if [ -z $node ]; then
-  echo "$(basename $0) nodename"
+nodelist=$1
+
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
   exit 1
 fi
+
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 
 action=$2
 [ -z "${action}" ] && action=status
 
-bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-export bmc_ip
-
+main(){
+  node=$1
+  action=$2
+  export bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  ret=$(
 case ${action} in
   auto) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x73 0 ;;
   max) ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} raw 0x3c 0x74 100 ;;
-  #*) echo "${bmc_ip}: $(ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} sdr|grep RPM|awk '{print $3}'|paste -s -d ' ')";;
-  *) echo "${bmc_ip}: $(curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/PlatformEnvironmentMetrics_0|jq -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | grep FAN | while read a b; do echo ${b%%\.*}; done|paste -s -d',')";;
+  *) curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/TelemetryService/MetricReports/PlatformEnvironmentMetrics_0|jq -r '.MetricValues[]|[.MetricProperty,.MetricValue]|@tsv' | grep FAN | while read a b; do echo ${b%%\.*}; done|paste -s -d',' ;;
 esac
+)
+  echo "$node: $ret"
+}
+export -f main
+
+echo ${nodes[*]} | tr ' ' '\n' | xargs -P 18 -I {} bash -c "main {} ${action}"
