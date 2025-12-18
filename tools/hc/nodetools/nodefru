@@ -15,7 +15,7 @@ nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 export -f get_serial_number
 main(){
   node=$1
-  bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  export bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
   #ret=$(timeout 5 ipmitool -I lanplus -H ${bmc_ip} -U ${bmc_username} -P ${bmc_password} fru print 1||echo 'N/A')
   ret=$(timeout 5 bash -c 'get_serial_number'||echo 'N/A')
   echo "$node: $ret"
