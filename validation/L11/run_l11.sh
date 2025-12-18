@@ -10,8 +10,6 @@ BCM_HEADNODE_IP=10.135.8.2
 
 pdsh -R ssh -w $(cmsh -c "device list -r ${rack}"|grep PhysicalNode|awk '{print $2}'|paste -sd, -) <<- EOF | dshbak -c
 systemctl stop cmd munge slurmd nvidia-persistenced nvidia-dcgm nvidia-imex nvsm
-modprobe -r nvidia_drm nvidia_uvm nvidia_modeset gdrdrv nvidia_cspmu nvidia_fs nv_peer_mem nv_peermem nvidia_peermem 
-modprobe --remove --remove-dependencies -f nvidia
 dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00
 EOF
 
@@ -29,10 +27,12 @@ pkill -9 python3
 # Use a non-bonded interface/IP for --primary_diag_ip
 # Reference: NVBug 5679837: https://nvbugspro.nvidia.com/bug/5679837
 
-#  --loopback_ip=127.0.0.1 \
+## In this case, head node has bonded interfaces, but compute trays don't have. Then add loopback_ip help.
+## But if all nodes have bonded interfaces, then will fail to run.
 ./partnerdiag --mfg --run_spec=${rack}.json \
   --primary_diag_ip=${BCM_HEADNODE_IP} \
-  --topology=topo_72x1.json --test=NvlGpuStress --no_bmc 2>&1 | tee ${rack}-output.txt
+  --topology=topo_72x1.json --test=NvlGpuStress --no_bmc \
+  --loopback_ip=127.0.0.1 2>&1 | tee ${rack}-output.txt
 
 grep 'Final Result:' partnerdiag.log
 grep -e 'NvlGpuStress.*NVLink.*Error Threshold Exceeded' -e 'NETIR_LINK_EVT.*Fatal' run.log
