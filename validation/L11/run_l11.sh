@@ -5,12 +5,23 @@ cd /home/cmsupport/workspace/629-24972-4975-FLD-50898-rev23
 
 # cmsh -c 'rack list'
 rack=GB200-Rack2
-
 BCM_HEADNODE_IP=10.135.8.2
+nodes=($(cmsh -c "device list -r ${rack}"|grep PhysicalNode|awk '{print $2}'))
 
-pdsh -R ssh -w $(cmsh -c "device list -r ${rack}"|grep PhysicalNode|awk '{print $2}'|paste -sd, -) <<- EOF | dshbak -c
-systemctl stop cmd munge slurmd nvidia-persistenced nvidia-dcgm nvidia-imex nvsm
+# Check the compute nodes shipped with original connectors
+pdsh -R ssh -w $(echo ${nodes[*]}|tr ' ' ',') <<- EOF | dshbak -c
 dmidecode | grep -e 699-2G548-1201-A00 -e 699-2G548-1201-A10 -e 699-2G548-1201-800 -e 699-2G548-0202-800 -e 699-2G548-0202-A00
+EOF
+
+# Stop services and split bonded interfaces on compute trays
+pdcp -R ssh -w $(echo ${nodes[*]}|tr ' ' ',') ./prepnode.sh /tmp/prepnode.sh
+pdsh -R ssh -w $(echo ${nodes[*]}|tr ' ' ',') <<- EOF
+bash /tmp/prepnode.sh || true
+EOF
+
+# Change the compute tray root password to "Nvidia@123" beforehand in temp
+pdsh -R ssh -w $(echo ${nodes[*]}|tr ' ' ',') <<- EOF
+echo 'root:Nvidia@123' | chpasswd
 EOF
 
 bash gen-config.sh ${rack} > ${rack}.json

@@ -25,9 +25,9 @@ done
 export NMX_C_IP=${SWITCH_NODE_0_IP}
 
 export COMPUTE_NODE_USER="root"
-export COMPUTE_NODE_PASSWD="B1td1erNv@2025"
+export COMPUTE_NODE_PASSWD="Nvidia@123"
 export SWITCH_NODE_USER="admin"
-export SWITCH_NODE_PASSWD="Aivres@111"
+export SWITCH_NODE_PASSWD="Nvidia@123"
 export INTER_SWITCH_NODE_USER="root_inter_switch"
 export INTER_SWITCH_NODE_PASSWD="root_inter_switch"
 export BMC_USER="root"
