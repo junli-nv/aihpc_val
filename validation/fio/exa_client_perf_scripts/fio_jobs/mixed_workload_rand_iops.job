@@ -1,0 +1,17 @@
+[mixrw_randiops]
+group_reporting=1
+ioengine=${ioengine}
+readwrite=randrw
+direct=1
+rwmixread=${mwiopsmixread}
+bs=4k
+size=${filesize}
+iodepth=${iodepth}
+norandommap=0
+fallocate=none
+time_based
+runtime=${runtime}
+ramp_time=${ramptime}
+filename_format=test.$jobnum.$filenum.${USER}
+numjobs=${njobs}
+directory=${mountpoint}/client_validation/

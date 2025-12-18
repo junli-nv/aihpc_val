@@ -1,0 +1,16 @@
+[randread_iops]
+group_reporting=1
+ioengine=${ioengine}
+readwrite=randread
+direct=1
+bs=4k
+size=${filesize}
+iodepth=${iodepth}
+norandommap=0
+fallocate=none
+time_based
+runtime=${runtime}
+ramp_time=${ramptime}
+filename_format=test.$jobnum.$filenum.${USER}
+numjobs=${njobs}
+directory=${mountpoint}/client_validation/

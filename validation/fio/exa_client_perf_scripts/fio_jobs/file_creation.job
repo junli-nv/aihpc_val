@@ -1,0 +1,14 @@
+[file_creation]
+create_serialize=0
+ioengine=${ioengine}
+readwrite=read
+direct=1
+create_only=1
+bs=4096k
+size=${filesize}
+iodepth=${iodepth}
+norandommap=0
+fallocate=none
+filename_format=test.$jobnum.$filenum.${USER}
+numjobs=${njobs}
+directory=${mountpoint}/client_validation
