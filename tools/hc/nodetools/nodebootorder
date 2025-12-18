@@ -3,18 +3,24 @@
 topdir=$(dirname $(realpath $0))
 
 source $topdir/func.sh
-hostlist=$topdir/hosts.list
+export hostlist=$topdir/hosts.list
 
-node=$1
-if [ -z $node ]; then
-  echo "$(basename $0) nodename"
+nodelist=$1
+if [ -z $nodelist ]; then
+  echo "$(basename $0) nodelist"
   exit 1
 fi
 
-action=$2
-[ -z "${action}" ] && action=status
+nodes=($(python3 ${topdir}/python3-hostlist/hostlist -e ${nodelist}))
 
-bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
-export bmc_ip
+if [ ${#nodes[@]} -eq 0 ]; then
+  echo "nodelist is empty"
+  exit 1
+fi
 
-query_gb200_bootorder
+for node in "${nodes[@]}"; do
+  export bmc_ip=$(grep -w ${node} ${hostlist} | awk '{print $NF}')
+  query_gb200_bootorder | while read line; do
+    echo "$node: $line"
+  done
+done
