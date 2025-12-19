@@ -294,9 +294,18 @@ EOF
 cat > /cm/images/${image_name}/etc/modprobe.d/nvidia-imex.conf <<- EOF
 options nvidia NVreg_CreateImexChannel0=1
 EOF
+## Enable NV Profiling for normal users
 cat > /cm/images/${image_name}/etc/modprobe.d/nvprofiling.conf <<- EOF
 options nvidia NVreg_RestrictProfilingToAdminUsers=0
 EOF
+# ## Enable Coherent GPU Memory Mode(CDMM)) on GB200 for K8S
+# cat > /cm/images/${image_name}/etc/modprobe.d/nvidia-cdmm.conf <<- EOF
+# #new way: GPU driver manage GPU memory as coherent memory
+# options nvidia NVreg_CoherentGPUMemoryMode=driver
+# #old way: GPU memory shown as NUMA nodes
+# #options nvidia NVreg_CoherentGPUMemoryMode=driver
+# EOF
+# ## To use GDRCopy with CDMM you must use GDRCopy ≥ 2.5.1
 
 kvers=($(ls -1 /cm/images/${image_name}/lib/modules))
 #Ref:
