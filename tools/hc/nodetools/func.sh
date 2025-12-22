@@ -71,7 +71,7 @@ query_gb200_macs(){
 query_gb200_bootorder(){
   tmpf=$(mktemp)
   curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0/BootOptions?\$expand=.|jq '.Members[]|.Id,.DisplayName,.UefiDevicePath'|paste - - - > $tmpf
-  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq '.Boot.BootOrder[]'|while read i; do
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0?\$select=Boot/BootOrder|jq -r '.Boot.BootOrder[]'|while read i; do
     grep -w ${i##Boot} $tmpf
   done
   rm -f $tmpf
