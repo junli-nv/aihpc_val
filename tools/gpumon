@@ -12,6 +12,7 @@ metrics=(
   memory_clock
   gpu_temp
   memory_temp
+  enforced_power_limit
   power_usage
   gpu_utilization
   tensor_imma_active #IMMA(Integer Matrix Multiply-Accumulate): INT4,INT8
