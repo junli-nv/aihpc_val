@@ -206,7 +206,7 @@ get_serial_number(){
 (
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Systems/System_0|jq -r '.Id,.SerialNumber'|paste - -
 curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip/redfish/v1/Chassis|jq -r '.Members[]."@odata.id"'|grep HGX_ProcessorModule|while read i; do
-  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq -r '.Id,.PartNumber'|paste - -
+  curl -s -k -u $bmc_username:$bmc_password https://$bmc_ip${i}|jq -r '.Id,.PartNumber,.SerialNumber'|paste - - -
 done
 )| paste -s -d ','
 }
