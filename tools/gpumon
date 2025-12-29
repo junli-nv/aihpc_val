@@ -23,8 +23,8 @@ metrics=(
   fb_total
   fb_free
   fb_used
-  nvlink_bandwidth_l[0-9]
-  nvlink_bandwidth_l[0-9][0-9]
+  #nvlink_bandwidth_l[0-9]
+  #nvlink_bandwidth_l[0-9][0-9]
   nvlink_bandwidth_total
   nvlink.*error.*total*
   ecc_sbe_volatile_total
