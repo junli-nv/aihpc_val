@@ -37,7 +37,7 @@ spx_mon(){
     ifdev=$(ls -1 /sys/class/infiniband/${i}/device/net/)
     cat <<- EOF | paste -s -d ','
 $i
-$(ethtool -S $ifdev 2>/dev/null|grep -E 'rx_prio3_pause|tx_prio3_pause:|rx_prio3_discards:'|tr -d ' '|paste -s -d',')
+$(ethtool -S $ifdev 2>/dev/null|grep -E 'rx_prio3_pause|tx_prio3_pause:|rx_prio3_discards:'|sort|tr -d ' '|paste -s -d',')
 link_downed:$(cat /sys/class/infiniband/${i}/ports/1/counters/link_downed 2>/dev/null)
 roce_adp_retrans:$(cat /sys/class/infiniband/${i}/ports/1/hw_counters/roce_adp_retrans 2>/dev/null)
 np_cnp_sent:$(cat /sys/class/infiniband/${i}/ports/1/hw_counters/np_cnp_sent 2>/dev/null)
