@@ -4,6 +4,33 @@ spx_clear(){
 for i in $(grep ACTIVE /sys/class/infiniband/*/ports/1/state|cut -f5 -d'/'); do mlxlink -d ${i} -p 1 --pc &>/dev/null; done
 }
 
+# Traffic & mapping
+# tx_prio3_bytes, rx_prio3_bytes, tx_prio3_packets, rx_prio3_packets – confirm RoCE traffic is really on prio3 and see its share of # link BW. 
+# 
+# Loss & congestion
+# rx_prio3_buf_discard – drops due to lack of host RX buffers on prio3. 
+# rx_prio3_cong_discard – drops due to congestion/WRED on prio3. 
+# rx_prio3_discards / rx_discards_phy – generic RX drops; per‑prio version is ideal for RoCE. 
+# 
+# ECN / CNP (RoCE CC)
+# np_ecn_marked_roce_packets – RoCEv2 packets seen with ECN=11 (congestion experienced). 
+# np_cnp_sent – CNPs sent by notification point (NIC/DPU). 
+# rp_cnp_handled, rp_cnp_ignored – CNPs processed vs ignored by reaction point. 
+# 
+# PFC / pause (lossless behavior)
+# tx_pause_ctrl_phy, rx_pause_ctrl_phy – total global pause sent/received. 
+# tx_prio3_pause, rx_prio3_pause – per‑priority PFC frames on RoCE class. 
+# rx_prio3_pause_duration, rx_prio3_pause_transition – how long/how often prio3 is paused. 
+# tx_pause_storm_warning_events, tx_pause_storm_error_events – NIC‑detected PFC storms. 
+# 
+# RoCE transport health
+# roce_adp_retrans, roce_adp_retrans_to – adaptive retransmissions & timeouts. 
+# local_ack_timeout_err – ACK timeout on QPs (strong sign of congestion/path issues). 
+# out_of_buffer, out_of_sequence, packet_seq_err, rnr_nak_retry_err, rx_icrc_encapsulated – dropped WQEs, reordering, NAKs, CRC # errors. 
+# 
+# PCIe limits (host bottleneck vs network)
+# outbound_pci_stalled_rd, outbound_pci_stalled_wr and _events – fraction of time outbound reads/writes are stalled by PCIe credits
+
 spx_mon(){
   nics=($(ls -1 /sys/class/infiniband))
   for i in ${nics[*]}; do
