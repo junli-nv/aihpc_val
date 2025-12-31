@@ -21,4 +21,5 @@ EOF
 }
 export -f spx_mon
 
+spx_clear
 watch -n 1 -x bash -c 'spx_mon'
