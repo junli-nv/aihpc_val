@@ -1,0 +1,24 @@
+#!/bin/bash
+
+spx_clear(){
+for i in $(grep ACTIVE /sys/class/infiniband/*/ports/1/state|cut -f5 -d'/'); do mlxlink -d ${i} -p 1 --pc &>/dev/null; done
+}
+
+spx_mon(){
+  nics=($(ls -1 /sys/class/infiniband))
+  for i in ${nics[*]}; do
+    ifdev=$(ls -1 /sys/class/infiniband/${i}/device/net/)
+    cat <<- EOF | paste -s -d ','
+$i
+$(ethtool -S $ifdev 2>/dev/null|grep -E 'rx_prio3_pause:|tx_prio3_pause:|rx_prio3_discards:'|tr -d ' '|paste -s -d',')
+link_downed:$(cat /sys/class/infiniband/${i}/ports/1/counters/link_downed 2>/dev/null)
+symbol_error:$(cat /sys/class/infiniband/${i}/ports/1/counters/symbol_error 2>/dev/null)
+roce_adp_retrans:$(cat /sys/class/infiniband/${i}/ports/1/hw_counters/roce_adp_retrans 2>/dev/null)
+np_cnp_sent:$(cat /sys/class/infiniband/${i}/ports/1/hw_counters/np_cnp_sent 2>/dev/null)
+rp_cnp_handled:$(cat /sys/class/infiniband/${i}/ports/1/hw_counters/rp_cnp_handled 2>/dev/null)
+EOF
+  done
+}
+export -f spx_mon
+
+watch -n 1 -x bash -c 'spx_mon'
